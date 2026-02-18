@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 const navLinks = [
   { href: "/tools/image-resizer", label: "Image Resizer" },
@@ -12,6 +14,7 @@ const navLinks = [
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-slate-800 dark:bg-slate-900/95">
@@ -24,24 +27,39 @@ export function Header() {
           DocMint
         </Link>
 
-        {/* Desktop nav */}
-        <nav
-          className="hidden items-center gap-1 sm:flex sm:gap-2"
-          aria-label="Main navigation"
-        >
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex items-center gap-2">
+          {/* Desktop nav */}
+          <nav
+            className="hidden items-center gap-1 sm:flex sm:gap-2"
+            aria-label="Main navigation"
+          >
+            {navLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
-        {/* Mobile menu button */}
-        <button
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            {theme === "light" ? (
+              <Moon className="h-5 w-5" aria-hidden />
+            ) : (
+              <Sun className="h-5 w-5" aria-hidden />
+            )}
+          </button>
+
+          {/* Mobile menu button */}
+          <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 sm:hidden"
           aria-expanded={mobileOpen}
@@ -74,6 +92,7 @@ export function Header() {
             )}
           </svg>
         </button>
+        </div>
       </div>
 
       {/* Mobile nav panel */}
