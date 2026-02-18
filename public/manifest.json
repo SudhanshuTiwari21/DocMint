@@ -1,0 +1,9 @@
+{
+  "name": "DocMint – Document & Image Tools",
+  "short_name": "DocMint",
+  "description": "Resize images for govt forms, compress PDF online India, passport photo size tool.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#0f172a"
+}
