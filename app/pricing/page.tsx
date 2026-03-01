@@ -73,11 +73,11 @@ export default function PricingPage() {
           </span>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Premium</h2>
           <div className="mt-4 flex items-baseline gap-1">
-            <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">₹200</span>
+            <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">₹99</span>
             <span className="text-slate-600 dark:text-slate-400">/ month</span>
           </div>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            ₹2,400 billed annually (save 2 months)
+            ₹990 billed annually (save 2 months)
           </p>
           <ul className="mt-6 flex-1 space-y-3">
             {premiumFeatures.map((f) => (
@@ -114,10 +114,10 @@ export default function PricingPage() {
             ))}
           </ul>
           <a
-            href={`mailto:sales@dockera.in?subject=Business plan inquiry`}
+            href={`mailto:info@dockera.in?subject=Business plan inquiry`}
             className="btn btn-outline btn-block mt-8"
           >
-            Contact sales
+            Contact us
           </a>
         </div>
       </div>

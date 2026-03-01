@@ -2,8 +2,8 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 
 const CURRENCY = "INR";
-const PLAN_MONTHLY_AMOUNT_PAISE = 20000; // ₹200
-const PLAN_YEARLY_AMOUNT_PAISE = 240000; // ₹2,400
+const PLAN_MONTHLY_AMOUNT_PAISE = 9900; // ₹99
+const PLAN_YEARLY_AMOUNT_PAISE = 99000; // ₹990 (save 2 months)
 
 export function getRazorpayInstance(): Razorpay {
   const keyId = process.env.RAZORPAY_KEY_ID;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 
-const PLAN_AMOUNT_PAISE = 14900; // ₹149
+const PLAN_AMOUNT_PAISE = 9900; // ₹99
 const CURRENCY = "INR";
 const PLAN_INTERVAL = "monthly";
 

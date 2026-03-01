@@ -29,8 +29,8 @@ Optional:
 
 Create plans in the Razorpay Dashboard:
 
-- Monthly: ₹200/month
-- Yearly: ₹2,400/year (₹200/month)
+- Monthly: ₹99/month
+- Yearly: ₹990/year (₹99/month, save 2 months)
 
 Set `RAZORPAY_PLAN_MONTHLY_ID` and `RAZORPAY_PLAN_YEARLY_ID` in `.env`. If not set, plans are created automatically on first subscription.
 

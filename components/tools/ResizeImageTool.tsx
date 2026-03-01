@@ -101,7 +101,7 @@ function PremiumModal({
           Unlock Unlimited Image Resizing
         </h2>
         <p id="premium-modal-desc" className="mt-2 text-slate-600 dark:text-slate-400">
-          Get unlimited access for just ₹200/month.
+          Get unlimited access for just ₹99/month.
         </p>
         <ul className="mt-6 space-y-3" role="list">
           <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">

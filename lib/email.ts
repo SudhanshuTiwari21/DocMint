@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dockera.in";
-const FROM = process.env.SMTP_FROM ?? "Dockera <noreply@dockera.in>";
+const FROM = process.env.SMTP_FROM ?? "Dockera <info@dockera.in>";
 
 export async function sendVerificationEmail(email: string, link: string): Promise<void> {
   await transporter.sendMail({

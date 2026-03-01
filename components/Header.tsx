@@ -50,13 +50,6 @@ export function Header() {
       >
         Compress Image
       </Link>
-      <Link
-        href="/tools/pdf-compressor"
-        className="whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:px-3"
-      >
-        Compress PDF
-      </Link>
-
       {/* Convert PDF dropdown – hover to open (same as All PDF Tools) */}
       <div
         className="relative flex h-full items-center"
@@ -245,13 +238,6 @@ export function Header() {
             onClick={() => setMobileOpen(false)}
           >
             Compress Image
-          </Link>
-          <Link
-            href="/tools/pdf-compressor"
-            className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-            onClick={() => setMobileOpen(false)}
-          >
-            Compress PDF
           </Link>
           <MobileDropdownSection
             title="Convert PDF"
