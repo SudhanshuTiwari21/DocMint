@@ -158,7 +158,7 @@ export function Header() {
         </div>
 
         {/* Right: Login, Sign up, theme, mobile menu */}
-        <div className="ml-6 flex shrink-0 items-center gap-2 sm:gap-3 lg:ml-8">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="hidden items-center gap-3 sm:flex">
             <Link
               href="/login"
