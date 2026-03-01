@@ -57,13 +57,20 @@ export function Header() {
         Compress PDF
       </Link>
 
-      {/* Convert PDF dropdown – DaisyUI details/summary (click to open) */}
-      <details className="dropdown dropdown-end group">
-        <summary className="inline-flex h-full cursor-pointer list-none items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:px-3 [&::-webkit-details-marker]:hidden">
+      {/* Convert PDF dropdown – DaisyUI with hover */}
+      <div className="dropdown dropdown-end dropdown-hover group">
+        <div
+          tabIndex={0}
+          role="button"
+          className="inline-flex h-full cursor-pointer items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:px-3"
+        >
           <span className="whitespace-nowrap">Convert PDF</span>
-          <ChevronDown className="h-4 w-4 shrink-0 transition group-open:rotate-180" aria-hidden />
-        </summary>
-        <ul className="menu dropdown-content z-[60] mt-1 min-w-[220px] rounded-box border border-base-300 bg-base-100 p-2 shadow-xl">
+          <ChevronDown className="h-4 w-4 shrink-0 transition group-hover:rotate-180 group-focus-within:rotate-180" aria-hidden />
+        </div>
+        <ul
+          tabIndex={-1}
+          className="menu dropdown-content z-[60] mt-1 min-w-[220px] rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
+        >
           {convertPdfDropdownTools.map(({ href, title, icon: Icon }) => (
             <li key={href}>
               <Link
@@ -78,18 +85,25 @@ export function Header() {
             </li>
           ))}
         </ul>
-      </details>
+      </div>
 
-      {/* All Image Tools dropdown – DaisyUI details/summary (click to open); dropdown-end keeps it on screen */}
-      <details className="dropdown dropdown-bottom dropdown-end group">
-        <summary className="inline-flex h-full cursor-pointer list-none items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:px-3 [&::-webkit-details-marker]:hidden">
+      {/* All Image Tools dropdown – DaisyUI with hover; dropdown-end keeps it on screen */}
+      <div className="dropdown dropdown-bottom dropdown-end dropdown-hover group">
+        <div
+          tabIndex={0}
+          role="button"
+          className="inline-flex h-full cursor-pointer items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:px-3"
+        >
           <span className="whitespace-nowrap">All Image Tools</span>
-          <ChevronDown className="h-4 w-4 shrink-0 transition group-open:rotate-180" aria-hidden />
-        </summary>
-        <div className="dropdown-content z-[60] mt-1 w-[min(90vw,680px)] max-w-[calc(100vw-2rem)] rounded-xl border border-base-300 bg-base-100 p-6 shadow-xl">
+          <ChevronDown className="h-4 w-4 shrink-0 transition group-hover:rotate-180 group-focus-within:rotate-180" aria-hidden />
+        </div>
+        <div
+          tabIndex={-1}
+          className="dropdown-content z-[60] mt-1 w-[min(90vw,680px)] max-w-[calc(100vw-2rem)] rounded-xl border border-base-300 bg-base-100 p-6 shadow-xl"
+        >
           <MegaMenuContent columns={allImageToolsColumns} />
         </div>
-      </details>
+      </div>
 
       {/* All PDF Tools dropdown */}
       <div
@@ -143,7 +157,7 @@ export function Header() {
           {mainNav}
         </div>
 
-        {/* Right: Login, Sign up, theme, mobile menu */}
+        {/* Right: Pricing, Login, Sign up, theme, mobile menu */}
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="hidden items-center gap-3 sm:flex">
             <Link
@@ -304,7 +318,7 @@ function MegaMenu({ id, ariaLabelledby, columns, onLinkClick }: MegaMenuProps) {
       id={id}
       role="menu"
       aria-labelledby={ariaLabelledby}
-      className="absolute left-1/2 top-full z-[60] mt-1 w-[min(90vw,680px)] -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800"
+      className="absolute right-0 top-full z-[60] mt-1 w-[min(90vw,680px)] max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800"
     >
       <MegaMenuContent columns={columns} onLinkClick={onLinkClick} />
     </div>
