@@ -1,4 +1,55 @@
 import crypto from "crypto";
+import Razorpay from "razorpay";
+
+const CURRENCY = "INR";
+const PLAN_MONTHLY_AMOUNT_PAISE = 20000; // ₹200
+const PLAN_YEARLY_AMOUNT_PAISE = 240000; // ₹2,400
+
+export function getRazorpayInstance(): Razorpay {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) throw new Error("Razorpay is not configured");
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+}
+
+export async function createPlan(interval: "monthly" | "yearly"): Promise<string> {
+  const instance = getRazorpayInstance();
+  const isYearly = interval === "yearly";
+  const plan = await instance.plans.create({
+    period: isYearly ? "yearly" : "monthly",
+    interval: 1,
+    item: {
+      name: "Dockera Premium",
+      amount: isYearly ? PLAN_YEARLY_AMOUNT_PAISE : PLAN_MONTHLY_AMOUNT_PAISE,
+      currency: CURRENCY,
+      description: isYearly
+        ? "Premium access - Unlimited document processing (billed annually)"
+        : "Premium access - Unlimited document processing (monthly)",
+    },
+  });
+  return plan.id;
+}
+
+export async function createSubscription(planId: string, userId: string): Promise<string> {
+  const instance = getRazorpayInstance();
+  const subscription = await instance.subscriptions.create({
+    plan_id: planId,
+    quantity: 1,
+    total_count: 12,
+    notes: { user_id: userId },
+  });
+  return subscription.id;
+}
+
+export async function fetchSubscription(subscriptionId: string): Promise<{ notes?: Record<string, string> } | null> {
+  try {
+    const instance = getRazorpayInstance();
+    const subscription = await instance.subscriptions.fetch(subscriptionId);
+    return subscription as unknown as { notes?: Record<string, string> };
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Verifies Razorpay subscription payment signature.

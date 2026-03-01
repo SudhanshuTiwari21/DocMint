@@ -101,7 +101,7 @@ function PremiumModal({
           Unlock Unlimited Image Resizing
         </h2>
         <p id="premium-modal-desc" className="mt-2 text-slate-600 dark:text-slate-400">
-          Get unlimited access for just ₹149/month.
+          Get unlimited access for just ₹200/month.
         </p>
         <ul className="mt-6 space-y-3" role="list">
           <li className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
@@ -305,12 +305,18 @@ export function ResizeImageTool({
     setUpgradeError(null);
     setUpgradeLoading(true);
     try {
-      const subRes = await fetch("/api/create-subscription", {
+      const subRes = await fetch("/api/subscription/create", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({ plan: "monthly" }),
       });
       if (!subRes.ok) {
         const data = await subRes.json().catch(() => ({}));
+        if (subRes.status === 401) {
+          window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname);
+          return;
+        }
         setUpgradeError(data.error || "Could not start checkout");
         return;
       }
@@ -335,7 +341,7 @@ export function ResizeImageTool({
           razorpay_payment_id: string;
           razorpay_signature: string;
         }) => {
-          const verifyRes = await fetch("/api/verify-payment", {
+          const verifyRes = await fetch("/api/subscription/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

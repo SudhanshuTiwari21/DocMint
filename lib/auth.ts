@@ -2,7 +2,9 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "docera_premium";
+const SESSION_COOKIE = "dockera_session";
 const PREMIUM_EXPIRY_DAYS = 30;
+const SESSION_EXPIRY_DAYS = 7;
 
 function getSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -18,6 +20,15 @@ export type PremiumPayload = {
   exp: number;
 };
 
+export type SessionPayload = {
+  sub: string; // user id
+  email: string;
+  tier: string;
+  iat: number;
+  exp: number;
+};
+
+// --- Premium cookie (backward compatibility) ---
 export function createPremiumToken(): string {
   const secret = getSecret();
   const now = Math.floor(Date.now() / 1000);
@@ -58,4 +69,49 @@ export async function getPremiumCookie(): Promise<string | undefined> {
   return cookieStore.get(COOKIE_NAME)?.value;
 }
 
-export { COOKIE_NAME };
+// --- Session (user auth) ---
+export function createSessionToken(user: { id: string; email: string; tier: string }): string {
+  return jwt.sign(
+    { sub: user.id, email: user.email, tier: user.tier } as SessionPayload,
+    getSecret(),
+    { expiresIn: `${SESSION_EXPIRY_DAYS}d` }
+  );
+}
+
+export function verifySessionToken(token: string): SessionPayload | null {
+  try {
+    const decoded = jwt.verify(token, getSecret()) as SessionPayload & { iat?: number; exp?: number };
+    return { sub: decoded.sub, email: decoded.email, tier: decoded.tier, iat: decoded.iat!, exp: decoded.exp! };
+  } catch {
+    return null;
+  }
+}
+
+export async function setSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60,
+    path: "/",
+  });
+}
+
+export async function getSessionCookie(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get(SESSION_COOKIE)?.value;
+}
+
+export async function clearSessionCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
+}
+
+export async function getSession(): Promise<SessionPayload | null> {
+  const token = await getSessionCookie();
+  if (!token) return null;
+  return verifySessionToken(token);
+}
+
+export { COOKIE_NAME, SESSION_COOKIE };
