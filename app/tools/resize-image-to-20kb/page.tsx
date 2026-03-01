@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getDefaultMetadata, buildCanonicalUrl } from "@/lib/seo";
 import { ResizeImageTool } from "@/components/tools/ResizeImageTool";
 import { RelatedToolsLinks } from "@/components/RelatedToolsLinks";
+import { FaqAccordion } from "@/components/ui/FaqAccordion";
 
 const path = "/tools/resize-image-to-20kb";
 const canonicalUrl = buildCanonicalUrl(path);
@@ -118,31 +119,15 @@ export default function ResizeImageTo20kbPage() {
         </p>
       </section>
 
-      <section className="mb-12" aria-labelledby="faq-heading">
-        <h2 id="faq-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          FAQs
-        </h2>
-        <dl className="mt-4 space-y-6">
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">How do I resize an image to 20KB?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Upload your image, select 20 KB as target size, and click &quot;Resize image&quot;. The tool compresses in the browser. Then download the resized image. No data is sent to any server.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">Which government forms require 20KB photo size?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Some SSC, UPSC, and state recruitment forms specify 20KB or 30KB for the applicant photo. Use this tool to resize to exactly 20KB so your form upload is accepted.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">Is the 20KB image resizer free and safe?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Yes. The tool is free and runs in your browser. Your images are never uploaded. Safe for sensitive documents and government form photos.
-            </dd>
-          </div>
-        </dl>
-      </section>
+      <FaqAccordion
+        faqs={faqSchema.mainEntity.map((m) => ({
+          q: m.name,
+          a: (m as { acceptedAnswer: { text: string } }).acceptedAnswer.text,
+        }))}
+        heading="FAQs"
+        accordionName="faq-resize-20kb"
+        className="mb-12"
+      />
 
       <RelatedToolsLinks />
     </article>

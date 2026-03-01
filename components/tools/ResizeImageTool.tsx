@@ -410,7 +410,7 @@ export function ResizeImageTool({
           />
           {file && (
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Original: {file.name} ({formatBytes(file.size)})
+              Original size: {formatBytes(file.size)}
             </p>
           )}
         </div>

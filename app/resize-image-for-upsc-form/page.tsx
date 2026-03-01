@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getDefaultMetadata, buildCanonicalUrl } from "@/lib/seo";
 import { ResizeImageTool } from "@/components/tools/ResizeImageTool";
 import { RelatedToolsLinks } from "@/components/RelatedToolsLinks";
+import { FaqAccordion } from "@/components/ui/FaqAccordion";
 
 const path = "/resize-image-for-upsc-form";
 const canonicalUrl = buildCanonicalUrl(path);
@@ -118,31 +119,15 @@ export default function ResizeImageForUpscFormPage() {
         </p>
       </section>
 
-      <section className="mb-12" aria-labelledby="faq-heading">
-        <h2 id="faq-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          FAQs
-        </h2>
-        <dl className="mt-4 space-y-6">
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">What is the photo size for UPSC application form?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              UPSC forms typically require the photograph to be within a specified size, often 20KB to 100KB (e.g. 50KB or 100KB). Check the UPSC notification and use this tool to resize to the exact requirement.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">How do I resize my photo for UPSC form?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Upload your photo, select the target size as per UPSC guidelines (e.g. 50KB or 100KB), and click &quot;Resize image&quot;. Download the resized image and use it in your UPSC application.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">Is it safe to use this tool for UPSC form photo?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Yes. Processing is entirely in your browser. Your photo is never uploaded. Safe for UPSC application photos and other official documents.
-            </dd>
-          </div>
-        </dl>
-      </section>
+      <FaqAccordion
+        faqs={faqSchema.mainEntity.map((m) => ({
+          q: m.name,
+          a: (m as { acceptedAnswer: { text: string } }).acceptedAnswer.text,
+        }))}
+        heading="FAQs"
+        accordionName="faq-upsc-form"
+        className="mb-12"
+      />
 
       <RelatedToolsLinks />
     </article>

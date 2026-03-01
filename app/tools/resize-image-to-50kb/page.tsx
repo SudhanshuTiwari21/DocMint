@@ -4,6 +4,7 @@ import { getDefaultMetadata, buildCanonicalUrl } from "@/lib/seo";
 import { buildOptimizedTitle } from "@/lib/titleOptimizer";
 import { ResizeImageTool } from "@/components/tools/ResizeImageTool";
 import { RelatedToolsLinks } from "@/components/RelatedToolsLinks";
+import { FaqAccordion } from "@/components/ui/FaqAccordion";
 
 const path = "/tools/resize-image-to-50kb";
 const canonicalUrl = buildCanonicalUrl(path);
@@ -119,31 +120,15 @@ export default function ResizeImageTo50kbPage() {
         </p>
       </section>
 
-      <section className="mb-12" aria-labelledby="faq-heading">
-        <h2 id="faq-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          FAQs
-        </h2>
-        <dl className="mt-4 space-y-6">
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">How do I resize an image to 50KB for government forms?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Upload your image, select 50 KB as target size, and click &quot;Resize image&quot;. The tool compresses in the browser. Then download the resized image. No data is sent to any server.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">What is the photo size for SSC and UPSC application?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Many SSC and UPSC forms require a photo under 50KB or 100KB. Use this tool to resize to 50KB so it meets the portal requirements.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">Can I resize to 20KB or 100KB on the same tool?</dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Yes. You can choose 20KB, 50KB, or 100KB, or enter a custom size. One tool for any target your form specifies.
-            </dd>
-          </div>
-        </dl>
-      </section>
+      <FaqAccordion
+        faqs={faqSchema.mainEntity.map((m) => ({
+          q: m.name,
+          a: (m as { acceptedAnswer: { text: string } }).acceptedAnswer.text,
+        }))}
+        heading="FAQs"
+        accordionName="faq-resize-50kb"
+        className="mb-12"
+      />
 
       <RelatedToolsLinks />
     </article>

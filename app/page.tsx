@@ -11,6 +11,7 @@ import {
   Smartphone,
   ArrowRight,
 } from "lucide-react";
+import { FaqAccordion } from "@/components/ui/FaqAccordion";
 
 export const metadata: Metadata = {
   ...getDefaultMetadata({
@@ -179,33 +180,12 @@ export default function HomePage() {
       </section>
 
       {/* FAQ */}
-      <section
-        className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
-        aria-labelledby="faq-heading"
-      >
-        <h2 id="faq-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
-          Frequently asked questions
-        </h2>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Quick answers about Docera and our tools.
-        </p>
-        <div className="join join-vertical mt-10 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
-          {faqs.map(({ q, a }, index) => (
-            <div
-              key={q}
-              className="collapse collapse-arrow join-item border-0 border-b border-slate-200 dark:border-slate-700 last:border-b-0 bg-white dark:bg-slate-800"
-            >
-              <input type="radio" name="faq-accordion" defaultChecked={index === 0} />
-              <div className="collapse-title min-h-0 py-4 text-base font-semibold text-slate-900 dark:text-slate-100 after:top-4">
-                {q}
-              </div>
-              <div className="collapse-content text-sm text-slate-600 dark:text-slate-400">
-                <p className="pt-0 pb-4">{a}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="mt-10 text-sm text-slate-500 dark:text-slate-400">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <FaqAccordion
+          faqs={faqs}
+          heading="Frequently asked questions"
+          subheading="Quick answers about Docera and our tools."
+        >
           Need to resize for a specific form? See our guides on{" "}
           <Link href="/resize-image-for-ssc-form" className="font-medium text-slate-900 dark:text-slate-200 underline underline-offset-2 hover:no-underline">
             SSC photo size
@@ -219,7 +199,7 @@ export default function HomePage() {
             resize image to 100KB
           </Link>{" "}
           tool.
-        </p>
+        </FaqAccordion>
       </section>
     </div>
   );

@@ -4,6 +4,7 @@ import { getDefaultMetadata, buildCanonicalUrl } from "@/lib/seo";
 import { buildOptimizedTitle } from "@/lib/titleOptimizer";
 import { ResizeImageTool } from "@/components/tools/ResizeImageTool";
 import { RelatedToolsLinks } from "@/components/RelatedToolsLinks";
+import { FaqAccordion } from "@/components/ui/FaqAccordion";
 
 const path = "/tools/resize-image-to-100kb";
 const canonicalUrl = buildCanonicalUrl(path);
@@ -208,56 +209,15 @@ export default function ResizeImageTo100kbPage() {
         </p>
       </section>
 
-      <section
+      <FaqAccordion
+        faqs={faqSchema.mainEntity.map((m) => ({
+          q: m.name,
+          a: (m as { acceptedAnswer: { text: string } }).acceptedAnswer.text,
+        }))}
+        heading="FAQs"
+        accordionName="faq-resize-100kb"
         className="mb-12"
-        aria-labelledby="faq-heading"
-      >
-        <h2 id="faq-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          FAQs
-        </h2>
-        <dl className="mt-4 space-y-6">
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">
-              How do I resize an image to 100KB for government forms?
-            </dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Upload your image, select the target size (20KB, 50KB, or 100KB),
-              and click &quot;Resize image&quot;. The tool compresses your photo in the
-              browser. Then download the resized image. No data is sent to any server.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">
-              What image size is required for SSC and UPSC application forms?
-            </dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              Many government forms in India (SSC, UPSC, railway, etc.) require
-              photos under 100KB or 50KB. Use this tool to resize your image to
-              the exact size required—choose 100KB, 50KB, or 20KB as needed.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">
-              Is it safe to use this image resizer? Are my photos uploaded?
-            </dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              All processing happens in your browser. Your images are never
-              uploaded to our servers. You can use the tool for sensitive
-              documents and passport-size photos with confidence.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900 dark:text-slate-100">
-              Which image formats are supported?
-            </dt>
-            <dd className="mt-1 text-slate-600 dark:text-slate-400">
-              The tool supports JPEG, PNG, WebP, and BMP. The output is always a
-              JPEG file optimized for small file size, which is what most
-              government portals accept.
-            </dd>
-          </div>
-        </dl>
-      </section>
+      />
 
       <RelatedToolsLinks />
     </article>
