@@ -22,9 +22,17 @@ export const metadata: Metadata = {
     ],
     path,
   }),
-  openGraph: { url: canonicalUrl },
+  openGraph: {
+    url: canonicalUrl,
+    title: "Resize Image to 20KB Online for Govt Forms | Dockera India",
+    description:
+      "Resize image to 20KB online for SSC, UPSC, railway and other government forms with strict size limits. Free image size reducer for Indian users.",
+    siteName: "Dockera",
+    locale: "en_IN",
+    type: "website",
+  },
   alternates: { canonical: canonicalUrl },
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 
 const faqSchema = {

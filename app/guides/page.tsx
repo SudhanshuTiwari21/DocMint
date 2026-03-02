@@ -13,7 +13,17 @@ export const metadata: Metadata = {
       "Guides on resizing images, compressing PDFs, and preparing documents for SSC, UPSC, and other government forms in India.",
     path,
   }),
+  openGraph: {
+    url: canonicalUrl,
+    title: "Guides – Document & Photo Tips for Govt Forms",
+    description:
+      "Guides on resizing images, compressing PDFs, and preparing documents for SSC, UPSC, and other government forms in India.",
+    siteName: "Dockera",
+    locale: "en_IN",
+    type: "website",
+  },
   alternates: { canonical: canonicalUrl },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 
 export default function GuidesPage() {

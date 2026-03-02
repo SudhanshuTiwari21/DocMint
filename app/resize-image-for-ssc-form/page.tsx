@@ -23,9 +23,17 @@ export const metadata: Metadata = {
     ],
     path,
   }),
-  openGraph: { url: canonicalUrl },
+  openGraph: {
+    url: canonicalUrl,
+    title: buildOptimizedTitle("Resize Image for SSC Form", { intent: "exam" }),
+    description:
+      "Resize image for SSC form online. Reduce photo to 20KB, 50KB or 100KB as required by SSC application. Free, private, works in your browser.",
+    siteName: "Dockera",
+    locale: "en_IN",
+    type: "website",
+  },
   alternates: { canonical: canonicalUrl },
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 
 const faqSchema = {

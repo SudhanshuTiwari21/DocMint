@@ -23,9 +23,17 @@ export const metadata: Metadata = {
     ],
     path,
   }),
-  openGraph: { url: canonicalUrl },
+  openGraph: {
+    url: canonicalUrl,
+    title: buildOptimizedTitle("Resize Image to 50KB Online", { intent: "govt" }),
+    description:
+      "Resize image to 50KB online for SSC, UPSC, railway and other government forms. Free image size reducer for Indian users—no sign-up, works in your browser.",
+    siteName: "Dockera",
+    locale: "en_IN",
+    type: "website",
+  },
   alternates: { canonical: canonicalUrl },
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 
 const faqSchema = {

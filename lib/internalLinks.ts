@@ -24,3 +24,20 @@ export const examPhotoGuidesLinks: InternalLink[] = [
   { href: "/resize-image-for-upsc-form", label: "UPSC photo size requirements" },
   { href: "/railway-photo-size-limit", label: "Railway exam photo size limit" },
 ];
+
+/** Image tools – for image-related tool pages */
+export const imageToolsLinks: InternalLink[] = [
+  { href: "/tools/resize-image-to-100kb", label: "Resize image to 100KB" },
+  { href: "/tools/compress-image", label: "Compress image online" },
+  { href: "/tools/crop-image", label: "Crop image online" },
+  { href: "/tools/passport-photo", label: "Passport photo maker" },
+  { href: "/tools/convert-to-png", label: "Convert to PNG" },
+];
+
+/** PDF tools – for PDF-related tool pages */
+export const pdfToolsLinks: InternalLink[] = [
+  { href: "/tools/pdf-compressor", label: "Compress PDF online" },
+  { href: "/tools/merge-pdf", label: "Merge PDF files" },
+  { href: "/tools/split-pdf", label: "Split PDF" },
+  { href: "/tools/pdf-to-jpg", label: "PDF to JPG converter" },
+];
