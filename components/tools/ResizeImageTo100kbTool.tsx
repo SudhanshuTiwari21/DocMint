@@ -1,13 +1,12 @@
 "use client";
 
-import { ResizeImageTool } from "./ResizeImageTool";
+import { SmartImageOptimizer } from "./SmartImageOptimizer";
 
 export function ResizeImageTo100kbTool() {
   return (
-    <ResizeImageTool
-      defaultTargetSize={100}
-      seoTitle="Resize Image to 100KB Online for Govt Forms | Dockera India"
-      seoDescription=""
+    <SmartImageOptimizer
+      defaultMode="smart"
+      defaultTargetKb={100}
       heading="Resize image to 100KB"
     />
   );

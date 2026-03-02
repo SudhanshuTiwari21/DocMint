@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDefaultMetadata, buildCanonicalUrl } from "@/lib/seo";
 import { buildOptimizedTitle } from "@/lib/titleOptimizer";
-import { ResizeImageTool } from "@/components/tools/ResizeImageTool";
+import { SmartImageOptimizer } from "@/components/tools/SmartImageOptimizer";
 import { RelatedToolsLinks } from "@/components/RelatedToolsLinks";
 import { FaqAccordion } from "@/components/ui/FaqAccordion";
 
@@ -91,10 +91,10 @@ export default function ResizeImageTo50kbPage() {
       </header>
 
       <div className="mb-14">
-        <ResizeImageTool
-          defaultTargetSize={50}
-          seoTitle="Resize Image to 50KB | Dockera"
-          seoDescription=""
+        <SmartImageOptimizer
+          defaultMode="smart"
+          defaultTargetKb={50}
+          seoDescription="Resize image to 50KB for government forms."
           heading="Resize image to 50KB"
         />
       </div>
