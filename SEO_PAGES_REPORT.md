@@ -50,7 +50,11 @@
 
 | Page | Fully SEO Optimized | FAQ Schema | Internal Link Clusters | Proper Metadata | 500+ Word Content | Backlinks |
 |------|:------------------:|:----------:|:----------------------:|:---------------:|:-----------------:|:---------:|
-| `/tools/image-resizer` | ✅ | ✅ | ✅ | ✅ | ❌ (~180) | N/A* |
+
+
+**Tool pages totals:**
+- Fully SEO optimized: **16/16** (100%)
+- FAQ schema: **16/16** (100%)| `/tools/image-resizer` | ✅ | ✅ | ✅ | ✅ | ❌ (~180) | N/A* |
 | `/tools/compress-image` | ✅ | ✅ | ✅ | ✅ | ❌ (~320) | N/A* |
 | `/tools/resize-image-to-100kb` | ✅ | ✅ | ✅ | ✅ | ❌ (~380) | N/A* |
 | `/tools/resize-image-to-50kb` | ✅ | ✅ | ✅ | ✅ | ❌ (~200) | N/A* |
@@ -66,10 +70,6 @@
 | `/tools/image-to-pdf` | ✅ | ✅ | ✅ | ✅ | ❌ (~170) | N/A* |
 | `/tools/passport-photo` | ✅ | ✅ | ✅ | ✅ | ❌ (~170) | N/A* |
 | `/tools/signature-extractor` | ✅ | ✅ | ✅ | ✅ | ❌ (~180) | N/A* |
-
-**Tool pages totals:**
-- Fully SEO optimized: **16/16** (100%)
-- FAQ schema: **16/16** (100%)
 - Internal link clusters: **16/16** (100%)
 - Proper metadata: **16/16** (100%)
 - 500+ word content: **0/16** (0%)

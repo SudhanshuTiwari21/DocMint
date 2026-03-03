@@ -25,6 +25,19 @@ export const examPhotoGuidesLinks: InternalLink[] = [
   { href: "/railway-photo-size-limit", label: "Railway exam photo size limit" },
   { href: "/fix-government-form-photo-upload-error", label: "Fix government form photo upload error" },
   { href: "/bihar-psc-photo-size", label: "Bihar PSC photo size" },
+  { href: "/ssc-cgl-photo-signature-size", label: "SSC CGL photo and signature size" },
+  { href: "/ssc-chsl-image-requirements", label: "SSC CHSL image requirements" },
+  { href: "/ssc-mts-photo-signature-requirements", label: "SSC MTS photo and signature" },
+  { href: "/rrb-group-d-photo-size", label: "RRB Group D photo size" },
+  { href: "/rrb-alp-photo-signature-size", label: "RRB ALP photo and signature" },
+  { href: "/rrb-je-photo-signature-requirements", label: "RRB JE photo and signature" },
+  { href: "/upsc-cse-photo-signature-guidelines", label: "UPSC CSE photo and signature" },
+  { href: "/ibps-po-photo-signature-size", label: "IBPS PO photo and signature" },
+  { href: "/sbi-clerk-photo-signature-requirements", label: "SBI Clerk photo and signature" },
+  { href: "/uppsc-photo-signature-requirements", label: "UPPSC photo and signature" },
+  { href: "/bihar-police-photo-signature-size", label: "Bihar Police photo and signature" },
+  { href: "/rajasthan-police-photo-signature-requirements", label: "Rajasthan Police photo and signature" },
+  { href: "/mppsc-photo-signature-size", label: "MPPSC photo and signature" },
 ];
 
 /** Image tools – for image-related tool pages */
