@@ -76,7 +76,7 @@ function LoginForm() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
           {step === "email" ? "Log in" : "Enter your code"}
         </h1>
@@ -171,7 +171,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="mx-auto max-w-md px-4 py-16">
-        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <p className="text-center text-slate-600 dark:text-slate-400">Loading…</p>
         </div>
       </div>

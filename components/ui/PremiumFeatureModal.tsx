@@ -37,7 +37,7 @@ export function PremiumFeatureModal({
         aria-hidden="true"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800 sm:p-8">
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-neutral-700 dark:bg-neutral-900 sm:p-8">
         <h2 id="premium-modal-title" className="text-xl font-semibold text-slate-900 dark:text-slate-100 sm:text-2xl">
           Pro feature
         </h2>
@@ -54,7 +54,7 @@ export function PremiumFeatureModal({
           <button
             type="button"
             onClick={onClose}
-            className="order-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 sm:order-1"
+            className="order-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 sm:order-1"
           >
             Maybe later
           </button>

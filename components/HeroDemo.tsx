@@ -5,23 +5,23 @@ import Link from "next/link";
 import { FileUp, Loader2, Download, ImageIcon, FileText } from "lucide-react";
 import { useState } from "react";
 
-/** Add public/hero-demo.mp4, hero-demo.webm, or hero-demo.gif for custom demo. */
+/** Add public/hero-demo.mp4, hero-demo.webm, or hero-demo.gif for custom demo. Defaults to fallback so the demo works without media. */
 export function HeroDemo() {
-  const [mediaState, setMediaState] = useState<"video" | "gif" | "fallback">("video");
+  const [mediaState, setMediaState] = useState<"video" | "gif" | "fallback">("fallback");
 
   const toolbar = (
-    <div className="mockup-browser-toolbar flex items-center justify-center px-3 py-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
-      <div className="input input-sm w-full max-w-md rounded-lg py-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-center text-xs sm:text-sm">
+    <div className="mockup-browser-toolbar flex items-center justify-center px-3 py-2 border-b border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900/80">
+      <div className="input input-sm w-full max-w-md rounded-lg py-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-neutral-600 text-slate-500 dark:text-slate-400 text-center text-xs sm:text-sm">
         dockera.in/tools/resize-image
       </div>
     </div>
   );
 
   const fallbackContent = () => (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 min-h-[280px] flex flex-col">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-b from-white to-slate-50 dark:from-neutral-900 dark:to-black min-h-[280px] flex flex-col">
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Upload card */}
-        <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 p-4 sm:p-5 flex flex-col items-center justify-center gap-3 min-h-[120px] animate-[float_2.5s_ease-in-out_infinite]">
+        <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900/50 p-4 sm:p-5 flex flex-col items-center justify-center gap-3 min-h-[120px] animate-[float_2.5s_ease-in-out_infinite]">
           <div className="rounded-lg bg-slate-100 dark:bg-slate-700 p-3">
             <FileUp className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600 dark:text-slate-400" />
           </div>
@@ -30,7 +30,7 @@ export function HeroDemo() {
         </div>
 
         {/* Process */}
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-4 sm:p-5 flex flex-col items-center justify-center gap-3 min-h-[120px]">
+        <div className="rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900/50 p-4 sm:p-5 flex flex-col items-center justify-center gap-3 min-h-[120px]">
           <div className="rounded-lg bg-slate-100 dark:bg-slate-700 p-3">
             <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600 dark:text-slate-400 animate-spin" />
           </div>
@@ -41,7 +41,7 @@ export function HeroDemo() {
         </div>
 
         {/* Result */}
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-4 sm:p-5 flex flex-col items-center justify-center gap-3 min-h-[120px] animate-[float_2.5s_ease-in-out_infinite_0.5s]">
+        <div className="rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900/50 p-4 sm:p-5 flex flex-col items-center justify-center gap-3 min-h-[120px] animate-[float_2.5s_ease-in-out_infinite_0.5s]">
           <div className="rounded-lg bg-slate-100 dark:bg-slate-700 p-3">
             <Download className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600 dark:text-slate-400" />
           </div>
@@ -95,9 +95,9 @@ export function HeroDemo() {
   );
 
   return (
-    <div className="mockup-browser border border-slate-200 dark:border-slate-700 w-full bg-slate-50 dark:bg-slate-900 shadow-xl">
+    <div className="mockup-browser border border-slate-200 dark:border-neutral-700 w-full bg-slate-50 dark:bg-black shadow-xl">
       {toolbar}
-      <div className="border-t border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="border-t border-slate-200 dark:border-neutral-700 overflow-hidden">
         {mediaState === "fallback" ? fallbackContent() : mediaContent()}
       </div>
     </div>

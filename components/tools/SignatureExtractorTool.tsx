@@ -157,8 +157,8 @@ export function SignatureExtractorTool() {
       </h2>
 
       <div
-        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-slate-800/50 ${
-          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-slate-600"
+        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-neutral-900/50 ${
+          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-neutral-600"
         }`}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -179,7 +179,7 @@ export function SignatureExtractorTool() {
       </div>
 
       {imgSrc && (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <div className="overflow-hidden rounded-lg bg-slate-900">
             <ReactCrop
               crop={crop}
@@ -242,14 +242,14 @@ export function SignatureExtractorTool() {
       )}
 
       {result && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Extracted signature</h3>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={result.url}
               alt="Signature"
-              className="max-h-32 rounded border border-slate-200 bg-white object-contain dark:border-slate-600"
+              className="max-h-32 rounded border border-slate-200 bg-white object-contain dark:border-neutral-600"
             />
             <button
               type="button"

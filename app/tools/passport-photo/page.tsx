@@ -92,7 +92,7 @@ export default function PassportPhotoPage() {
       </nav>
 
       <header className="mb-10">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-neutral-900 text-slate-600 dark:text-slate-400">
           <Camera className="h-8 w-8" aria-hidden />
         </div>
         <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">

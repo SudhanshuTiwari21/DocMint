@@ -64,7 +64,7 @@ function MergePdfPreview({ file }: { file: File }) {
       <img
         src={thumb}
         alt={`Preview of ${file.name}`}
-        className="h-20 w-auto rounded border border-slate-200 object-contain dark:border-slate-600"
+        className="h-20 w-auto rounded border border-slate-200 object-contain dark:border-neutral-600"
       />
       <span className="text-xs text-slate-500 dark:text-slate-400">First page preview</span>
     </div>
@@ -176,7 +176,7 @@ export function MergePdfTool() {
         Merge PDF
       </h2>
 
-      <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 dark:border-slate-600 dark:bg-slate-800/50">
+      <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 dark:border-neutral-600 dark:bg-neutral-900/50">
         <label className="flex cursor-pointer flex-col items-center gap-2">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-700">
             <Upload className="h-6 w-6 text-slate-500" aria-hidden />
@@ -233,7 +233,7 @@ export function MergePdfTool() {
                   </button>
                 </div>
                 {openPreviewIndex === i && (
-                  <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2 dark:border-slate-600 dark:bg-slate-800/60">
+                  <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2 dark:border-neutral-600 dark:bg-neutral-900/60">
                     <div className="mb-1 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       <FileText className="h-3 w-3" aria-hidden />
                       <span>First page preview</span>
@@ -244,7 +244,7 @@ export function MergePdfTool() {
               </div>
             ))}
             <div className="flex gap-2">
-              <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+              <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800">
                 Add more
                 <input
                   type="file"
@@ -276,7 +276,7 @@ export function MergePdfTool() {
       )}
 
       {result && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Merged PDF</h3>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <span className="text-sm text-slate-600 dark:text-slate-300">{formatBytes(result.blob.size)}</span>

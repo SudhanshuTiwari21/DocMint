@@ -197,8 +197,8 @@ export function ImageToPdfTool() {
       </h2>
 
       <div
-        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-slate-800/50 ${
-          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-slate-600"
+        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-neutral-900/50 ${
+          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-neutral-600"
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -228,7 +228,7 @@ export function ImageToPdfTool() {
                 Order = PDF page order — drag to reorder
               </span>
               <div className="flex gap-2">
-                <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+                <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800">
                   Add more
                   <input
                     type="file"
@@ -258,9 +258,9 @@ export function ImageToPdfTool() {
                     if (dragIndex !== null && dragIndex !== i) moveFile(dragIndex, i);
                   }}
                   onDragEnd={() => setDragIndex(null)}
-                  className="relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-700"
+                  className="relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-sm dark:border-neutral-600 dark:bg-slate-700"
                 >
-                  <div className="flex aspect-square items-center justify-center overflow-hidden rounded-t-lg bg-slate-100 dark:bg-slate-800">
+                  <div className="flex aspect-square items-center justify-center overflow-hidden rounded-t-lg bg-slate-100 dark:bg-neutral-900">
                     <ImageThumb file={f} />
                   </div>
                   <div className="flex items-center gap-1 px-2 py-1.5">
@@ -297,7 +297,7 @@ export function ImageToPdfTool() {
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(e.target.value as "a4" | "letter")}
-                className="w-full max-w-[120px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                className="w-full max-w-[120px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-slate-100"
               >
                 {PAGE_SIZES.map((s) => (
                   <option key={s.id} value={s.id}>{s.label}</option>
@@ -311,7 +311,7 @@ export function ImageToPdfTool() {
               <select
                 value={orientation}
                 onChange={(e) => setOrientation(e.target.value as "portrait" | "landscape")}
-                className="w-full max-w-[140px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                className="w-full max-w-[140px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-slate-100"
               >
                 <option value="portrait">Portrait</option>
                 <option value="landscape">Landscape</option>
@@ -336,7 +336,7 @@ export function ImageToPdfTool() {
       )}
 
       {result && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">PDF created</h3>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <span className="text-sm text-slate-600 dark:text-slate-300">{formatBytes(result.blob.size)}</span>

@@ -37,11 +37,11 @@ export function FaqAccordion({
       {subheading && (
         <p className="mt-2 text-slate-600 dark:text-slate-400">{subheading}</p>
       )}
-      <div className="join join-vertical mt-10 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+      <div className="join join-vertical mt-10 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-sm">
         {faqs.map(({ q, a }, index) => (
           <div
             key={q}
-            className="collapse collapse-arrow join-item border-0 border-b border-slate-200 dark:border-slate-700 last:border-b-0 bg-white dark:bg-slate-800"
+            className="collapse collapse-arrow join-item border-0 border-b border-slate-200 dark:border-neutral-700 last:border-b-0 bg-white dark:bg-neutral-900"
           >
             <input
               type="radio"

@@ -36,7 +36,7 @@ export default function SignupPage() {
   if (status === "success") {
     return (
       <div className="mx-auto max-w-md px-4 py-16">
-        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
             Check your email
           </h1>
@@ -66,7 +66,7 @@ export default function SignupPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
           Create your account
         </h1>

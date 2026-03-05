@@ -223,7 +223,7 @@ export default function ResizeImageTo100kbPage() {
       </section>
 
       <section
-        className="mb-12 rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/50"
+        className="mb-12 rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900/50"
         aria-labelledby="how-it-works-heading"
       >
         <h3 id="how-it-works-heading" className="text-lg font-semibold text-slate-900 dark:text-slate-100">

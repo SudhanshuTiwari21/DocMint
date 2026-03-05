@@ -371,7 +371,7 @@ export function CropImageTool({
                   className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium ${
                     dimensionLock
                       ? "border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-neutral-900 dark:text-slate-200 dark:hover:bg-neutral-800"
                   }`}
                   title={dimensionLock ? "Unlock aspect ratio" : "Lock aspect ratio (govt forms)"}
                 >
@@ -441,14 +441,14 @@ export function CropImageTool({
 
       {/* Result */}
       {result && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Cropped image</h3>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview; next/image doesn't support blob */}
             <img
               src={result.url}
               alt="Cropped result"
-              className="max-h-64 rounded-lg border border-slate-200 object-contain dark:border-slate-600"
+              className="max-h-64 rounded-lg border border-slate-200 object-contain dark:border-neutral-600"
             />
             <div className="flex flex-1 flex-col justify-between gap-4">
               <p className="text-sm text-slate-600 dark:text-slate-400">

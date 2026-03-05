@@ -190,7 +190,7 @@ export function ResizeImageTool({
 
   return (
     <section
-      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
       aria-labelledby="tool-heading"
     >
       <h2 id="tool-heading" className="sr-only">
@@ -238,7 +238,7 @@ export function ResizeImageTool({
                 setTargetKb(Number(e.target.value));
                 resetResult();
               }}
-              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
             >
               {TARGET_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -257,7 +257,7 @@ export function ResizeImageTool({
                     setCustomKb(e.target.value);
                     resetResult();
                   }}
-                  className="w-24 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                  className="w-24 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
                 />
                 <span className="text-sm text-slate-500 dark:text-slate-400">KB</span>
               </div>
@@ -282,7 +282,7 @@ export function ResizeImageTool({
       </div>
 
       {resultSize !== null && previewUrl && (
-        <div className="mt-6 space-y-4 border-t border-slate-200 pt-6 dark:border-slate-700">
+        <div className="mt-6 space-y-4 border-t border-slate-200 pt-6 dark:border-neutral-700">
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Compressed size: <strong>{formatBytes(resultSize)}</strong>
             {file && <> (original: {formatBytes(file.size)})</>}
@@ -292,7 +292,7 @@ export function ResizeImageTool({
             <img
               src={previewUrl}
               alt="Compressed preview"
-              className="max-h-64 rounded-lg border border-slate-200 object-contain dark:border-slate-600"
+              className="max-h-64 rounded-lg border border-slate-200 object-contain dark:border-neutral-600"
             />
             <button
               type="button"

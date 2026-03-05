@@ -128,13 +128,13 @@ function PdfPreviewThumbnails({ url }: { url: string }) {
       <div>
         <p className="mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">First page</p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={preview.first} alt="First page" className="max-h-32 rounded border border-slate-200 object-contain dark:border-slate-600" />
+        <img src={preview.first} alt="First page" className="max-h-32 rounded border border-slate-200 object-contain dark:border-neutral-600" />
       </div>
       {preview.first !== preview.last && (
         <div>
           <p className="mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">Last page</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={preview.last} alt="Last page" className="max-h-32 rounded border border-slate-200 object-contain dark:border-slate-600" />
+          <img src={preview.last} alt="Last page" className="max-h-32 rounded border border-slate-200 object-contain dark:border-neutral-600" />
         </div>
       )}
     </div>
@@ -324,8 +324,8 @@ export function PdfCompressorTool() {
       </h2>
 
       <div
-        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-slate-800/50 ${
-          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-slate-600"
+        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-neutral-900/50 ${
+          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-neutral-600"
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -374,7 +374,7 @@ export function PdfCompressorTool() {
       </div>
 
       {file && (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:p-6">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 sm:p-6">
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-900 dark:text-slate-100">
               Compression level
@@ -388,7 +388,7 @@ export function PdfCompressorTool() {
                   className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     compressionLevel === level.id
                       ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                   }`}
                 >
                   {level.label}
@@ -409,7 +409,7 @@ export function PdfCompressorTool() {
               placeholder="e.g. 200"
               value={targetKb}
               onChange={(e) => setTargetKb(e.target.value)}
-              className="w-full max-w-[140px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="w-full max-w-[140px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Govt forms often have limits (e.g. 200 KB, 500 KB). Leave empty to use compression level only.
@@ -421,7 +421,7 @@ export function PdfCompressorTool() {
               type="checkbox"
               checked={govtFormSafe}
               onChange={(e) => setGovtFormSafe(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-600"
+              className="rounded border-slate-300 dark:border-neutral-600"
             />
             <span className="text-sm text-slate-700 dark:text-slate-300">
               Govt-form-safe (preserve readability — avoids over-compression)
@@ -452,7 +452,7 @@ export function PdfCompressorTool() {
       )}
 
       {batchResults.length === 1 && result && file && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Compressed — preview before download</h3>
           <div className="mb-4">
             <PdfPreviewThumbnails url={result.url} />
@@ -474,13 +474,13 @@ export function PdfCompressorTool() {
       )}
 
       {batchResults.length > 1 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Compressed PDFs</h3>
           <ul className="space-y-3">
             {batchResults.map((r, i) => (
               <li
                 key={i}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 dark:border-slate-600 dark:bg-slate-700/50"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 dark:border-neutral-600 dark:bg-slate-700/50"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <FileText className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />

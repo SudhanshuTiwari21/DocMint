@@ -70,7 +70,7 @@ function SplitPdfPreview({ file }: { file: File }) {
         <img
           src={preview.first}
           alt="First page"
-          className="max-h-32 rounded border border-slate-200 object-contain dark:border-slate-600"
+          className="max-h-32 rounded border border-slate-200 object-contain dark:border-neutral-600"
         />
       </div>
       {preview.first !== preview.last && (
@@ -80,7 +80,7 @@ function SplitPdfPreview({ file }: { file: File }) {
           <img
             src={preview.last}
             alt="Last page"
-            className="max-h-32 rounded border border-slate-200 object-contain dark:border-slate-600"
+            className="max-h-32 rounded border border-slate-200 object-contain dark:border-neutral-600"
           />
         </div>
       )}
@@ -227,7 +227,7 @@ export function SplitPdfTool() {
         Split PDF
       </h2>
 
-      <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 dark:border-slate-600 dark:bg-slate-800/50">
+      <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 dark:border-neutral-600 dark:bg-neutral-900/50">
         <label className="flex cursor-pointer flex-col items-center gap-2">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-700">
             <Upload className="h-6 w-6 text-slate-500" aria-hidden />
@@ -255,7 +255,7 @@ export function SplitPdfTool() {
                 Replace
               </button>
             </div>
-            <div className="border-t border-slate-200 pt-3 text-xs text-slate-600 dark:border-slate-600 dark:text-slate-300">
+            <div className="border-t border-slate-200 pt-3 text-xs text-slate-600 dark:border-neutral-600 dark:text-slate-300">
               <p className="mb-2 font-medium">Preview before split</p>
               <SplitPdfPreview file={file} />
             </div>
@@ -298,7 +298,7 @@ export function SplitPdfTool() {
                 value={pageRange}
                 onChange={(e) => setPageRange(e.target.value)}
                 placeholder="1, 3-5, 7"
-                className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-slate-100"
               />
             </div>
           )}
@@ -320,7 +320,7 @@ export function SplitPdfTool() {
       )}
 
       {results.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Split ({results.length} file{results.length > 1 ? "s" : ""})
           </h3>
@@ -328,7 +328,7 @@ export function SplitPdfTool() {
             {results.map((r, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-700/50"
+                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-neutral-600 dark:bg-slate-700/50"
               >
                 <span className="text-sm text-slate-700 dark:text-slate-300">{r.name}</span>
                 <button

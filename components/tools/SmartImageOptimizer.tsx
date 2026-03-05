@@ -367,8 +367,8 @@ export function SmartImageOptimizer({
 
       {/* Upload Area - drag-and-drop + multi-file */}
       <div
-        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-slate-800/50 ${
-          isDragging ? "border-slate-400 bg-slate-100 dark:border-slate-500 dark:bg-slate-700/50" : "border-slate-200 dark:border-slate-600"
+        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-neutral-900/50 ${
+          isDragging ? "border-slate-400 bg-slate-100 dark:border-slate-500 dark:bg-slate-700/50" : "border-slate-200 dark:border-neutral-600"
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -442,7 +442,7 @@ export function SmartImageOptimizer({
             onClick={() => setMode(m.id)}
             className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               mode === m.id
-                ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                ? "bg-white text-slate-900 shadow-sm dark:bg-neutral-900 dark:text-slate-100"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
             }`}
           >
@@ -462,7 +462,7 @@ export function SmartImageOptimizer({
         id={`panel-${mode}`}
         role="tabpanel"
         aria-labelledby={`tab-${mode}`}
-        className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+        className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
       >
         {mode === "resize" && (
           <div className="space-y-4">
@@ -480,7 +480,7 @@ export function SmartImageOptimizer({
                     max={8000}
                     value={resizeWidth}
                     onChange={(e) => updateResizeWidth(Number(e.target.value) || 1)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
                   />
                 </div>
                 <div>
@@ -494,14 +494,14 @@ export function SmartImageOptimizer({
                     max={8000}
                     value={resizeHeight}
                     onChange={(e) => updateResizeHeight(Number(e.target.value) || 1)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
                   />
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setMaintainAspect(!maintainAspect)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
                 title={maintainAspect ? "Unlock aspect ratio" : "Lock aspect ratio"}
                 aria-label={maintainAspect ? "Unlock aspect ratio" : "Lock aspect ratio"}
               >
@@ -513,7 +513,7 @@ export function SmartImageOptimizer({
                 type="checkbox"
                 checked={maintainAspect}
                 onChange={(e) => setMaintainAspect(e.target.checked)}
-                className="rounded border-slate-300 dark:border-slate-600"
+                className="rounded border-slate-300 dark:border-neutral-600"
               />
               <span className="text-sm text-slate-600 dark:text-slate-400">Lock aspect ratio</span>
             </label>
@@ -562,7 +562,7 @@ export function SmartImageOptimizer({
                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                       examPresetId === p.id
                         ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-400 dark:bg-emerald-900/30 dark:text-emerald-200"
-                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                     }`}
                   >
                     {p.label.replace(/\s*\d{4}$/, "")} · {p.targetKb}KB
@@ -578,7 +578,7 @@ export function SmartImageOptimizer({
                 id="exam-preset"
                 value={examPresetId || "custom"}
                 onChange={(e) => setExamPresetId(e.target.value === "custom" ? "" : e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
               >
                 <option value="custom">{CUSTOM_PRESET.label}</option>
                 <optgroup label="SSC">
@@ -627,7 +627,7 @@ export function SmartImageOptimizer({
                       type="checkbox"
                       checked={examIsSignature}
                       onChange={(e) => setExamIsSignature(e.target.checked)}
-                      className="rounded border-slate-300 dark:border-slate-600"
+                      className="rounded border-slate-300 dark:border-neutral-600"
                     />
                     <span className="text-sm text-slate-600 dark:text-slate-400">Resize for signature ({selectedExamPreset.signatureKb} KB)</span>
                   </label>
@@ -651,7 +651,7 @@ export function SmartImageOptimizer({
                 max={5000}
                 value={targetKb}
                 onChange={(e) => setTargetKb(Number(e.target.value) || 100)}
-                className="w-full max-w-[180px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="w-full max-w-[180px] rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
               />
               {estimatedSizeKb != null && (
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -668,7 +668,7 @@ export function SmartImageOptimizer({
                   className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     smartStrategy === "smart"
                       ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-400 dark:bg-emerald-900/30 dark:text-emerald-200"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                   }`}
                 >
                   Smart (prefer quality)
@@ -679,7 +679,7 @@ export function SmartImageOptimizer({
                   className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     smartStrategy === "aggressive"
                       ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-400 dark:bg-emerald-900/30 dark:text-emerald-200"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                   }`}
                 >
                   Aggressive (smaller file)
@@ -690,13 +690,13 @@ export function SmartImageOptimizer({
         )}
 
         {/* Options: metadata & DPI */}
-        <div className="mt-4 flex flex-wrap items-center gap-6 border-t border-slate-200 pt-4 dark:border-slate-600">
+        <div className="mt-4 flex flex-wrap items-center gap-6 border-t border-slate-200 pt-4 dark:border-neutral-600">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={stripMetadata}
               onChange={(e) => setStripMetadata(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-600"
+              className="rounded border-slate-300 dark:border-neutral-600"
             />
             <span className="text-sm text-slate-600 dark:text-slate-400">Strip metadata (recommended for govt forms)</span>
           </label>
@@ -706,7 +706,7 @@ export function SmartImageOptimizer({
               id="output-dpi"
               value={outputDpi}
               onChange={(e) => setOutputDpi(Number(e.target.value) as 72 | 150 | 300)}
-              className="rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
             >
               <option value={72}>72 (screen)</option>
               <option value={150}>150 (print)</option>
@@ -743,7 +743,7 @@ export function SmartImageOptimizer({
 
       {/* Results Panel - side-by-side before/after + batch */}
       {batchResults.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Results</h3>
 
           {batchResults.length === 1 && result && (
@@ -756,7 +756,7 @@ export function SmartImageOptimizer({
                     <img
                       src={originalUrl}
                       alt="Original"
-                      className="max-h-56 w-full rounded-lg border border-slate-200 object-contain dark:border-slate-600"
+                      className="max-h-56 w-full rounded-lg border border-slate-200 object-contain dark:border-neutral-600"
                     />
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                       {formatBytes(result.file.size)}
@@ -770,7 +770,7 @@ export function SmartImageOptimizer({
                   <img
                     src={result.url}
                     alt="Optimized"
-                    className="max-h-56 w-full rounded-lg border border-slate-200 object-contain dark:border-slate-600"
+                    className="max-h-56 w-full rounded-lg border border-slate-200 object-contain dark:border-neutral-600"
                   />
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     {formatBytes(result.blob.size)}
@@ -805,7 +805,7 @@ export function SmartImageOptimizer({
                 <button
                   type="button"
                   onClick={() => { resetResult(); handleFileSelect(null); }}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                 >
                   Reset
                 </button>
@@ -818,7 +818,7 @@ export function SmartImageOptimizer({
               {batchResults.map((r, i) => (
                 <li
                   key={i}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 dark:border-slate-600 dark:bg-slate-700/50"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 dark:border-neutral-600 dark:bg-slate-700/50"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <ImageIcon className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />

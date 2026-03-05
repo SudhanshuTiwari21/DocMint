@@ -8,12 +8,18 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 export const metadata: Metadata = {
   ...getDefaultMetadata(),
   manifest: "/manifest.json",
+  icons: [
+    { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    { url: "/favicon-64.png", sizes: "64x64", type: "image/png" },
+    { url: "/favicon-128.png", sizes: "128x128", type: "image/png" },
+  ],
+  appleWebApp: { capable: true },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f172a",
+  themeColor: "#000000",
 };
 
 const themeScript = `

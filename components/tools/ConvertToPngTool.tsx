@@ -163,8 +163,8 @@ export function ConvertToPngTool() {
       </h2>
 
       <div
-        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-slate-800/50 ${
-          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-slate-600"
+        className={`rounded-xl border-2 border-dashed bg-slate-50 p-8 transition-colors dark:bg-neutral-900/50 ${
+          isDragging ? "border-slate-400 bg-slate-100 dark:bg-slate-700" : "border-slate-200 dark:border-neutral-600"
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -218,7 +218,7 @@ export function ConvertToPngTool() {
       )}
 
       {results.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-neutral-600 dark:bg-neutral-900">
           <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Converted ({results.length} file{results.length > 1 ? "s" : ""})
           </h3>
@@ -226,7 +226,7 @@ export function ConvertToPngTool() {
             {results.map((r, i) => (
               <div
                 key={i}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-700/50"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-neutral-600 dark:bg-slate-700/50"
               >
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   {r.name} · {formatBytes(r.blob.size)}
@@ -245,7 +245,7 @@ export function ConvertToPngTool() {
               <button
                 type="button"
                 onClick={handleDownloadAll}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800"
               >
                 <Download className="h-4 w-4" aria-hidden />
                 Download all

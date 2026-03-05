@@ -8,7 +8,7 @@
 }
 
 .dark {
-  --background: #0f172a;
+  --background: #000000;
   --foreground: #f1f5f9;
 }
 
@@ -59,27 +59,25 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Hero section – rich reveal animations */
-@media (prefers-reduced-motion: no-preference) {
-  .animate-hero-headline {
-    animation: heroHeadlineReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-  .animate-hero-subtitle {
-    opacity: 0;
-    animation: heroSubtitleReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
-  }
-  .animate-hero-buttons {
-    opacity: 0;
-    animation: heroButtonsReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-  .animate-hero-btn-1 { animation-delay: 0.35s; }
-  .animate-hero-btn-2 { animation-delay: 0.45s; }
-  .animate-hero-btn-3 { animation-delay: 0.55s; }
-  .animate-hero-highlight {
-    background: linear-gradient(120deg, transparent 0%, rgba(148, 163, 184, 0.15) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: heroHighlightShimmer 2.5s ease-in-out 0.8s forwards;
-  }
+/* Hero section – rich reveal animations (on by default; disabled when user prefers reduced motion) */
+.animate-hero-headline {
+  animation: heroHeadlineReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-hero-subtitle {
+  opacity: 0;
+  animation: heroSubtitleReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+}
+.animate-hero-buttons {
+  opacity: 0;
+  animation: heroButtonsReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-hero-btn-1 { animation-delay: 0.35s; }
+.animate-hero-btn-2 { animation-delay: 0.45s; }
+.animate-hero-btn-3 { animation-delay: 0.55s; }
+.animate-hero-highlight {
+  background: linear-gradient(120deg, transparent 0%, rgba(148, 163, 184, 0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: heroHighlightShimmer 2.5s ease-in-out 0.8s forwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-headline,

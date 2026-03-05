@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { getDefaultMetadata } from "@/lib/seo";
 import { allTools } from "@/lib/toolsData";
 import { HeroDemo } from "@/components/HeroDemo";
@@ -70,7 +71,7 @@ const faqSchema = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-white dark:bg-black">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
@@ -78,11 +79,12 @@ export default function HomePage() {
 
       {/* Hero – heading and description closer to nav */}
       <section
-        className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-900"
+        className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white dark:from-black dark:via-black dark:to-black"
         aria-labelledby="hero-heading"
       >
         <div className="mx-auto max-w-6xl px-4 pt-6 pb-4 sm:px-6 sm:pt-8 sm:pb-6 lg:px-8 lg:pt-10 lg:pb-8">
           <div className="text-center">
+           
             <h1
               id="hero-heading"
               className="animate-hero-headline text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl lg:text-4xl"
@@ -103,13 +105,13 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/tools/pdf-compressor"
-                className="animate-hero-buttons animate-hero-btn-2 inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-5 py-3.5 text-base font-semibold text-slate-900 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:focus-visible:outline-slate-100 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="animate-hero-buttons animate-hero-btn-2 inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-5 py-3.5 text-base font-semibold text-slate-900 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:focus-visible:outline-slate-100 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 Compress PDF
               </Link>
               <Link
                 href="/tools/passport-photo"
-                className="animate-hero-buttons animate-hero-btn-3 inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-5 py-3.5 text-base font-semibold text-slate-900 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:focus-visible:outline-slate-100 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="animate-hero-buttons animate-hero-btn-3 inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-5 py-3.5 text-base font-semibold text-slate-900 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:focus-visible:outline-slate-100 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 Passport Photo
               </Link>
@@ -134,7 +136,7 @@ export default function HomePage() {
             <li key={href} className="flex">
               <Link
                 href={href}
-                className="landing-tool-card group flex h-full flex-col rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm"
+                className="landing-tool-card group flex h-full flex-col rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 shadow-sm"
               >
                 <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors">
                   <Icon className="h-6 w-6" aria-hidden />
@@ -162,14 +164,14 @@ export default function HomePage() {
 
       {/* Trust strip */}
       <section
-        className="border-y border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50"
+        className="border-y border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-900/50"
         aria-label="Why trust Dockera"
       >
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {trustItems.map(({ icon: Icon, label }) => (
               <li key={label} className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/80 dark:ring-slate-600/80 text-slate-600 dark:text-slate-400">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-slate-200/80 dark:ring-neutral-600/80 text-slate-600 dark:text-slate-400">
                   <Icon className="h-5 w-5" aria-hidden />
                 </span>
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>

@@ -38,7 +38,7 @@ export default function PricingPage() {
 
       <div className="mt-16 grid gap-8 lg:grid-cols-2 lg:max-w-3xl lg:mx-auto">
         {/* Basic - Free */}
-        <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Basic</h2>
           <div className="mt-4 flex items-baseline gap-1">
             <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">Free</span>
@@ -61,7 +61,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pro */}
-        <div className="relative flex flex-col rounded-2xl border-2 border-slate-900 bg-white p-8 shadow-lg dark:border-slate-100 dark:bg-slate-800">
+        <div className="relative flex flex-col rounded-2xl border-2 border-slate-900 bg-white p-8 shadow-lg dark:border-slate-100 dark:bg-neutral-900">
           <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 px-3 py-0.5 text-xs font-medium text-white dark:bg-slate-100 dark:text-slate-900">
             Popular
           </span>

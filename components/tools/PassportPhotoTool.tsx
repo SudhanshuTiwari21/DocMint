@@ -54,7 +54,7 @@ export function PassportPhotoTool() {
 
   const renderResultExtras = useCallback(
     (result: CropImageToolResult) => (
-      <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-600">
+      <div className="mt-6 border-t border-slate-200 pt-4 dark:border-neutral-600">
         <h4 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
           Print sheet (multiple copies per page)
         </h4>
@@ -67,7 +67,7 @@ export function PassportPhotoTool() {
               key={n}
               type="button"
               onClick={() => handlePrintSheet(result, n)}
-              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
             >
               <Printer className="h-4 w-4" aria-hidden />
               {n} per page
@@ -86,7 +86,7 @@ export function PassportPhotoTool() {
       </h2>
 
       {/* Exam / size preset */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
         <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
           Exam / size preset
         </h3>
@@ -96,7 +96,7 @@ export function PassportPhotoTool() {
         <select
           value={presetId}
           onChange={(e) => setPresetId(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          className="w-full max-w-sm rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
           aria-label="Select exam or size preset"
         >
           {PASSPORT_PRESETS.map((p) => (
@@ -114,7 +114,7 @@ export function PassportPhotoTool() {
       </div>
 
       {/* Background & shadow (options applied before crop result) */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
         <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
           Background &amp; quality
         </h3>
@@ -126,7 +126,7 @@ export function PassportPhotoTool() {
             <select
               value={background}
               onChange={(e) => setBackground(e.target.value as BackgroundMode)}
-              className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-slate-700 dark:text-slate-100"
             >
               <option value="original">Keep original</option>
               <option value="white">White</option>
