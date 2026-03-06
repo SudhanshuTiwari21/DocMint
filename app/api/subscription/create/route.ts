@@ -32,9 +32,16 @@ export async function POST(request: Request) {
   let planId: string;
   try {
     planId = plan === "yearly" ? (PLAN_YEARLY_ID ?? await createPlan("yearly")) : (PLAN_MONTHLY_ID ?? await createPlan("monthly"));
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("[subscription/create] plan", err);
-    return NextResponse.json({ error: "Failed to get plan" }, { status: 500 });
+    const raw = err as { error?: { description?: string }; description?: string; message?: string };
+    const message =
+      raw?.error?.description ?? raw?.description ?? (err instanceof Error ? err.message : null) ?? "Failed to get plan";
+    const hint =
+      message === "Failed to get plan"
+        ? " Enable Subscriptions in Razorpay Dashboard (Payment products) and use correct API keys (Test/Live)."
+        : "";
+    return NextResponse.json({ error: message + hint }, { status: 500 });
   }
 
   try {

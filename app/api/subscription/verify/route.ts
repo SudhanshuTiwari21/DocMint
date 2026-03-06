@@ -55,15 +55,21 @@ export async function POST(request: Request) {
 
   const userId = subscription.notes.user_id;
 
+  const isYearly = PLAN_YEARLY_ID && subscription.plan_id === PLAN_YEARLY_ID;
+  const planInterval = isYearly ? "yearly" : "monthly";
+  const currentStart = subscription.current_start != null ? new Date(subscription.current_start * 1000) : null;
+  const currentEnd = subscription.current_end != null ? new Date(subscription.current_end * 1000) : null;
+
   try {
     await query(
-      `UPDATE users SET tier = 'premium', updated_at = NOW() WHERE id = $1`,
-      [userId]
+      `UPDATE users SET tier = 'premium', subscription_ends_at = $1, plan_interval = $2, updated_at = NOW() WHERE id = $3`,
+      [currentEnd, planInterval, userId]
     );
     await query(
-      `UPDATE subscriptions SET status = 'active', updated_at = NOW()
-       WHERE razorpay_subscription_id = $1`,
-      [subscriptionId]
+      `UPDATE subscriptions SET status = 'active', updated_at = NOW(),
+       current_start = $1, current_end = $2
+       WHERE razorpay_subscription_id = $3`,
+      [currentStart, currentEnd, subscriptionId]
     );
   } catch (err) {
     console.error("[subscription/verify]", err);
@@ -84,7 +90,6 @@ export async function POST(request: Request) {
   const premiumToken = createPremiumToken();
   await setPremiumCookie(premiumToken);
 
-  const isYearly = PLAN_YEARLY_ID && subscription.plan_id === PLAN_YEARLY_ID;
   const planLabel = isYearly ? "Pro (Yearly)" : "Pro (Monthly)";
   const amount = isYearly ? "₹990" : "₹99";
   const date = new Date().toLocaleDateString("en-IN", {

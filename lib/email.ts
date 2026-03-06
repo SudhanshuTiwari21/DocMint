@@ -137,3 +137,37 @@ export async function sendSubscriptionInvoiceEmail(data: SubscriptionInvoiceData
 
   await sendEmail(data.email, "Your Dockera Pro invoice", invoiceHtml);
 }
+
+export async function sendRenewalReminderEmail(
+  email: string,
+  firstName: string,
+  renewalDate: string,
+  planLabel: string
+): Promise<void> {
+  const fullName = firstName?.trim() || "there";
+  await sendEmail(
+    email,
+    "Your Dockera Pro subscription is renewing soon",
+    `
+      <p>Hi ${fullName},</p>
+      <p>Your Dockera Pro subscription (${planLabel}) will renew on <strong>${renewalDate}</strong>.</p>
+      <p>No action is needed if you want to continue. We'll charge your saved payment method automatically.</p>
+      <p>To cancel or update your subscription, visit <a href="${SITE_URL}/pricing">${SITE_URL}/pricing</a> and manage your plan.</p>
+      <p>Thanks for using Dockera.</p>
+    `
+  );
+}
+
+export async function sendSubscriptionEndedEmail(email: string, firstName: string): Promise<void> {
+  const fullName = firstName?.trim() || "there";
+  await sendEmail(
+    email,
+    "Your Dockera Pro subscription has ended",
+    `
+      <p>Hi ${fullName},</p>
+      <p>Your Dockera Pro subscription has ended. Pro features are no longer available on your account.</p>
+      <p>To get Pro back, visit <a href="${SITE_URL}/pricing">${SITE_URL}/pricing</a> and subscribe again.</p>
+      <p>Thanks for using Dockera.</p>
+    `
+  );
+}

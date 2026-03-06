@@ -10,6 +10,9 @@ psql "$DATABASE_URL" -f migrations/001_init.sql
 
 # After adding auth rate limit and one-time verification links
 psql "$DATABASE_URL" -f migrations/002_verification_links_and_auth_rate.sql
+
+# After adding subscription renewal reminder tracking
+psql "$DATABASE_URL" -f migrations/003_renewal_reminder_sent.sql
 ```
 
 **Using Neon dashboard:**  

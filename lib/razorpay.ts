@@ -41,17 +41,28 @@ export async function createSubscription(planId: string, userId: string): Promis
   return subscription.id;
 }
 
-export async function fetchSubscription(subscriptionId: string): Promise<{
+export type SubscriptionDetails = {
   notes?: Record<string, string>;
   plan_id?: string;
-} | null> {
+  current_start?: number;
+  current_end?: number;
+  status?: string;
+};
+
+export async function fetchSubscription(subscriptionId: string): Promise<SubscriptionDetails | null> {
   try {
     const instance = getRazorpayInstance();
     const subscription = await instance.subscriptions.fetch(subscriptionId);
-    return subscription as unknown as { notes?: Record<string, string>; plan_id?: string };
+    return subscription as unknown as SubscriptionDetails;
   } catch {
     return null;
   }
+}
+
+/** Verify Razorpay webhook signature. Use raw request body (e.g. await request.text()). */
+export function verifyWebhookSignature(rawBody: string, signature: string, webhookSecret: string): boolean {
+  const expected = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
+  return expected === signature;
 }
 
 /**
