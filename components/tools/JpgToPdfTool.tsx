@@ -24,6 +24,17 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+/** Draw image to canvas and return JPEG data URL so jsPDF addImage gets a string (avoids .data undefined errors). */
+function imageToDataUrl(img: HTMLImageElement, width: number, height: number): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2d context not available");
+  ctx.drawImage(img, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -165,8 +176,9 @@ export function JpgToPdfTool() {
         const x = margin + (maxW - imgW) / 2;
         const y = margin + (maxH - imgH) / 2;
 
+        const dataUrl = imageToDataUrl(img, img.naturalWidth, img.naturalHeight);
         if (i > 0) pdf.addPage();
-        pdf.addImage(img, "JPEG", x, y, imgW, imgH);
+        pdf.addImage(dataUrl, "JPEG", x, y, imgW, imgH);
       }
 
       const blob = pdf.output("blob");
@@ -221,7 +233,7 @@ export function JpgToPdfTool() {
           <div className="mt-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Order = PDF page order — drag to reorder
+                Drag to reorder
               </span>
               <div className="flex gap-2">
                 <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800">
