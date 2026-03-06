@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Sun, Moon, ChevronDown, MoreVertical } from "lucide-react";
+import { Sun, Moon, ChevronDown, MoreVertical, LogOut } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   allImageToolsColumns,
@@ -14,11 +15,22 @@ import {
 
 type DropdownId = "convert-pdf" | "all-image" | "all-pdf" | null;
 
+type AuthUser = { id: string; email: string; firstName: string; lastName: string; tier: string };
+
 export function Header() {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<DropdownId>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setUser(data?.user ?? null))
+      .catch(() => setUser(null));
+  }, [pathname]);
 
   useEffect(() => {
     if (!openDropdown) return;
@@ -30,6 +42,13 @@ export function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    setUser(null);
+    setMobileOpen(false);
+    window.location.href = "/";
+  };
 
   const mainNav = (
     <nav
@@ -186,18 +205,35 @@ export function Header() {
             >
               Pricing
             </Link>
-            <Link
-              href="/login"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-neutral-800 dark:hover:text-slate-100"
-            >
-              Login
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus-visible:outline-slate-100"
-            >
-              Sign up
-            </Link>
+            {user ? (
+              <>
+                <span className="max-w-[140px] truncate text-sm text-slate-600 dark:text-slate-400" title={user.email}>
+                  {user.firstName || user.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-neutral-800 dark:hover:text-slate-100"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-neutral-800 dark:hover:text-slate-100"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus-visible:outline-slate-100"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -265,20 +301,37 @@ export function Header() {
             onLinkClick={() => setMobileOpen(false)}
           />
           <div className="mt-2 flex gap-2 border-t border-slate-200 pt-3 dark:border-neutral-700">
-            <Link
-              href="/login"
-              className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-center text-sm font-medium text-slate-700 dark:border-neutral-600 dark:text-slate-300"
-              onClick={() => setMobileOpen(false)}
-            >
-              Login
-            </Link>
-            <Link
-              href="/signup"
-              className="flex-1 rounded-md bg-slate-900 px-3 py-2.5 text-center text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
-              onClick={() => setMobileOpen(false)}
-            >
-              Sign up
-            </Link>
+            {user ? (
+              <>
+                <span className="flex-1 truncate py-2.5 text-center text-sm text-slate-600 dark:text-slate-400" title={user.email}>
+                  {user.firstName || user.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { handleLogout(); setMobileOpen(false); }}
+                  className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-center text-sm font-medium text-slate-700 dark:border-neutral-600 dark:text-slate-300"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-center text-sm font-medium text-slate-700 dark:border-neutral-600 dark:text-slate-300"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="flex-1 rounded-md bg-slate-900 px-3 py-2.5 text-center text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </div>

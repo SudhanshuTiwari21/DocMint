@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     const sessionToken = createSessionToken({ id: user.id, email: user.email, tier: user.tier });
     await setSessionCookie(sessionToken);
 
-    return Response.redirect(`${SITE_URL}/pricing`);
+    return Response.redirect(`${SITE_URL}/?verified=1`);
   } catch (err) {
     console.error("[verify-email]", err);
     return Response.redirect(`${SITE_URL}/login?error=server-error`);
