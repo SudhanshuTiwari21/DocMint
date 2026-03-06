@@ -41,11 +41,14 @@ export async function createSubscription(planId: string, userId: string): Promis
   return subscription.id;
 }
 
-export async function fetchSubscription(subscriptionId: string): Promise<{ notes?: Record<string, string> } | null> {
+export async function fetchSubscription(subscriptionId: string): Promise<{
+  notes?: Record<string, string>;
+  plan_id?: string;
+} | null> {
   try {
     const instance = getRazorpayInstance();
     const subscription = await instance.subscriptions.fetch(subscriptionId);
-    return subscription as unknown as { notes?: Record<string, string> };
+    return subscription as unknown as { notes?: Record<string, string>; plan_id?: string };
   } catch {
     return null;
   }
@@ -53,7 +56,8 @@ export async function fetchSubscription(subscriptionId: string): Promise<{ notes
 
 /**
  * Verifies Razorpay subscription payment signature.
- * Signature is HMAC SHA256 of (subscription_id + "|" + payment_id) with key_secret.
+ * Per Razorpay docs: HMAC SHA256 of (razorpay_payment_id + "|" + subscription_id) with key_secret.
+ * https://razorpay.com/docs/payments/subscriptions/integration-guide/#payment-verification
  */
 export function verifySubscriptionPaymentSignature(
   subscriptionId: string,
@@ -61,7 +65,7 @@ export function verifySubscriptionPaymentSignature(
   signature: string,
   keySecret: string
 ): boolean {
-  const body = `${subscriptionId}|${paymentId}`;
+  const body = `${paymentId}|${subscriptionId}`;
   const expected = crypto
     .createHmac("sha256", keySecret)
     .update(body)

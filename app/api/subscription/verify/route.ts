@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifySubscriptionPaymentSignature } from "@/lib/razorpay";
-import { fetchSubscription } from "@/lib/razorpay";
+import { verifySubscriptionPaymentSignature, fetchSubscription } from "@/lib/razorpay";
 import { query } from "@/lib/db";
 import {
   createSessionToken,
@@ -8,8 +7,10 @@ import {
   createPremiumToken,
   setPremiumCookie,
 } from "@/lib/auth";
+import { sendSubscriptionInvoiceEmail } from "@/lib/email";
 
 const keySecret = process.env.RAZORPAY_KEY_SECRET;
+const PLAN_YEARLY_ID = process.env.RAZORPAY_PLAN_YEARLY_ID;
 
 export async function POST(request: Request) {
   if (!keySecret) {
@@ -69,8 +70,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to activate premium" }, { status: 500 });
   }
 
-  const rows = await query<{ id: string; email: string; tier: string }[]>(
-    `SELECT id, email, tier FROM users WHERE id = $1`,
+  const rows = await query<{ id: string; email: string; first_name: string; last_name: string; tier: string }[]>(
+    `SELECT id, email, first_name, last_name, tier FROM users WHERE id = $1`,
     [userId]
   );
   if (rows.length === 0) {
@@ -82,6 +83,32 @@ export async function POST(request: Request) {
   await setSessionCookie(sessionToken);
   const premiumToken = createPremiumToken();
   await setPremiumCookie(premiumToken);
+
+  const isYearly = PLAN_YEARLY_ID && subscription.plan_id === PLAN_YEARLY_ID;
+  const planLabel = isYearly ? "Pro (Yearly)" : "Pro (Monthly)";
+  const amount = isYearly ? "₹990" : "₹99";
+  const date = new Date().toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  try {
+    await sendSubscriptionInvoiceEmail({
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      subscriptionId,
+      paymentId,
+      planLabel,
+      amount,
+      date,
+    });
+  } catch (err) {
+    console.error("[subscription/verify] invoice email", err);
+  }
 
   return NextResponse.json({ success: true });
 }
