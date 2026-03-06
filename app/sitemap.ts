@@ -52,6 +52,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/guides/how-to-resize-image-for-government-forms", changeFrequency: "monthly", priority: 0.8 },
     // Static pages
     { path: "/pricing", changeFrequency: "weekly", priority: 0.8 },
+    { path: "/login", changeFrequency: "monthly", priority: 0.5 },
+    { path: "/signup", changeFrequency: "monthly", priority: 0.5 },
     { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
     { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
   ];
