@@ -4,9 +4,15 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+function safeRedirect(path: string | null): string {
+  const p = (path ?? "").trim();
+  if (p.startsWith("/") && !p.startsWith("//")) return p;
+  return "/";
+}
+
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/";
+  const redirect = safeRedirect(searchParams.get("redirect"));
   const errorParam = searchParams.get("error");
 
   const [step, setStep] = useState<"email" | "otp">("email");

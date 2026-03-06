@@ -29,9 +29,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const rows = await query<{ id: string }[]>(`SELECT id FROM users WHERE email = $1`, [email]);
+  const rows = await query<{ id: string; email_verified_at: string | null }[]>(
+    `SELECT id, email_verified_at FROM users WHERE email = $1`,
+    [email]
+  );
   if (rows.length === 0) {
     return NextResponse.json({ error: "No account found with this email. Please sign up first." }, { status: 404 });
+  }
+  if (rows[0].email_verified_at == null) {
+    return NextResponse.json(
+      { error: "Please verify your email first. Check your inbox for the verification link." },
+      { status: 403 }
+    );
   }
 
   try {

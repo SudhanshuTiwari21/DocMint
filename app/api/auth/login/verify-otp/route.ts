@@ -34,12 +34,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid or expired OTP" }, { status: 400 });
   }
 
-  const rows = await query<{ id: string; email: string; tier: string }[]>(
-    `SELECT id, email, tier FROM users WHERE email = $1`,
+  const rows = await query<{ id: string; email: string; tier: string; email_verified_at: string | null }[]>(
+    `SELECT id, email, tier, email_verified_at FROM users WHERE email = $1`,
     [email]
   );
   if (rows.length === 0) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+  if (rows[0].email_verified_at == null) {
+    return NextResponse.json(
+      { error: "Please verify your email first. Check your inbox for the verification link." },
+      { status: 403 }
+    );
   }
 
   const user = rows[0];

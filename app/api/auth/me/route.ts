@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, clearSessionCookie } from "@/lib/auth";
 import { query } from "@/lib/db";
 
 export async function GET() {
@@ -14,6 +14,7 @@ export async function GET() {
   );
 
   if (rows.length === 0) {
+    await clearSessionCookie();
     return NextResponse.json({ user: null }, { status: 200 });
   }
 

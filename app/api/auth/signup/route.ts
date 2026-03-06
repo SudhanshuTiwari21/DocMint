@@ -43,16 +43,29 @@ export async function POST(request: Request) {
   }
 
   try {
-    await query(
-      `INSERT INTO users (email, first_name, last_name, email_verified_at, tier)
-       VALUES ($1, $2, $3, NULL, 'free')
-       ON CONFLICT (email) DO UPDATE SET
-         first_name = EXCLUDED.first_name,
-         last_name = EXCLUDED.last_name,
-         email_verified_at = NULL,
-         updated_at = NOW()`,
-      [email, firstName, lastName]
+    const existing = await query<{ email_verified_at: string | null }[]>(
+      `SELECT email_verified_at FROM users WHERE email = $1`,
+      [email]
     );
+
+    if (existing.length > 0) {
+      if (existing[0].email_verified_at != null) {
+        return NextResponse.json(
+          { error: "You have already signed up. Please log in." },
+          { status: 409 }
+        );
+      }
+      await query(
+        `UPDATE users SET first_name = $1, last_name = $2, updated_at = NOW() WHERE email = $3`,
+        [firstName, lastName, email]
+      );
+    } else {
+      await query(
+        `INSERT INTO users (email, first_name, last_name, email_verified_at, tier)
+         VALUES ($1, $2, $3, NULL, 'free')`,
+        [email, firstName, lastName]
+      );
+    }
 
     const token = createVerificationToken(email);
     const link = getVerificationLink(token);

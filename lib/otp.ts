@@ -17,11 +17,13 @@ export function createOtp(): string {
 }
 
 export async function storeOtp(email: string, otp: string, purpose = "login"): Promise<void> {
+  const normalizedEmail = email.toLowerCase();
+  await query(`DELETE FROM otp_tokens WHERE email = $1 AND purpose = $2`, [normalizedEmail, purpose]);
   const otpHash = hashOtp(otp);
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
   await query(
     `INSERT INTO otp_tokens (email, otp_hash, purpose, expires_at) VALUES ($1, $2, $3, $4)`,
-    [email.toLowerCase(), otpHash, purpose, expiresAt]
+    [normalizedEmail, otpHash, purpose, expiresAt]
   );
 }
 

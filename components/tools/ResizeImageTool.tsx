@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Lock } from "lucide-react";
 import { checkAndUpdateDailyUsage } from "@/lib/usageLimit";
 import { FileInput } from "@/components/ui/FileInput";
 import { LimitReachedModal } from "@/components/ui/LimitReachedModal";
@@ -202,7 +203,7 @@ export function ResizeImageTool({
         </p>
       )}
       <p className="mb-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
-        <span aria-hidden>🔒</span>
+        <Lock className="h-4 w-4 shrink-0" aria-hidden />
         Your files are processed in your browser. Nothing is uploaded.
       </p>
 

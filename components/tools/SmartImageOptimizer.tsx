@@ -850,7 +850,7 @@ export function SmartImageOptimizer({
 
       {/* Trust Section */}
       <p className="flex items-center gap-2 text-sm text-slate-500">
-        <span aria-hidden>🔒</span>
+        <Lock className="h-4 w-4 shrink-0" aria-hidden />
         Processed entirely in your browser. No uploads.
       </p>
 
