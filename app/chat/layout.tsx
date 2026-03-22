@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
+import { DocChatStructuredData } from "./DocChatStructuredData";
 
-/**
- * Keeps DocChat in a flex subtree with min-h-0 so only the inner messages area scrolls,
- * not the whole document, when the chat column is height-constrained.
- */
-/** Matches Header `h-14` (3.5rem) — lock height so % / flex children don’t grow with content. */
-const CHAT_MAIN_H = "h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)]";
+/** Matches Header `h-14`. Locks DocChat to the viewport so inner panes can scroll. */
+const CHAT_VIEWPORT =
+  "h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] min-h-0 w-full flex-shrink-0";
 
 export default function ChatLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className={`flex min-h-0 flex-1 flex-col overflow-hidden ${CHAT_MAIN_H}`}
+      data-docchat-shell
+      className={`flex min-h-0 flex-col overflow-hidden ${CHAT_VIEWPORT}`}
     >
-      {children}
+      <DocChatStructuredData />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
     </div>
   );
 }

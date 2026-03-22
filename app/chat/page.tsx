@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getDefaultMetadata } from "@/lib/seo";
 import { ChatClient } from "@/components/chat/ChatClient";
-import { DocChatStructuredData } from "./DocChatStructuredData";
 
 export const metadata: Metadata = {
   ...getDefaultMetadata({
@@ -33,8 +32,7 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      <DocChatStructuredData />
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
       <ChatClient />
     </div>
   );

@@ -459,44 +459,38 @@ export function ChatClient() {
     usage.documentsUploaded >= usage.documentsLimit;
 
   return (
-    <div
-      className="flex min-h-0 w-full flex-1 flex-row items-stretch gap-3 overflow-hidden bg-[#ececf1] p-2 sm:gap-4 sm:p-4 dark:bg-neutral-950"
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+    <div className="flex min-h-0 min-w-0 flex-1 flex-row items-stretch gap-3 overflow-hidden bg-[#ececf1] p-2 sm:gap-4 sm:p-4 dark:bg-neutral-950">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
+          onChange={handleFileChange}
+        />
 
-      {/* Left: chats — own scroll; fixed width; does not shrink with messages */}
-      <aside
-        className={`${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-full md:min-h-0 md:translate-x-0`}
-      >
-        {/*
-          min-h-0 on aside: flex items default to min-height:auto and won't shrink below content.
-          Grid + minmax(0,1fr): middle row takes remaining height and scrolls; usage stays visible.
-        */}
-        <div className="grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
-            <button
-              type="button"
-              onClick={startGeneralChat}
-              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800"
+        {/* Left: flex column — header + scrollable list + usage (never grows past parent) */}
+        <aside
+          className={`${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-full md:min-h-0 md:translate-x-0`}
+        >
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
+              <button
+                type="button"
+                onClick={startGeneralChat}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800"
+              >
+                New chat
+              </button>
+            </div>
+
+            <div
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 [scrollbar-gutter:stable]"
+              style={{ WebkitOverflowScrolling: "touch" }}
+              aria-label="Chat history"
             >
-              New chat
-            </button>
-          </div>
-
-          <div
-            className="min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-3 [scrollbar-gutter:stable]"
-            style={{ WebkitOverflowScrolling: "touch" }}
-            aria-label="Chat history"
-          >
             {convos.length > 0 ? (
               <ul className="space-y-1">
                 {convos.map((c) => (

@@ -25,6 +25,13 @@ body {
   background: var(--background);
 }
 
+/* DocChat: stop the document from growing with a long sidebar list (flex min-height:auto chain). */
+html:has([data-docchat-shell]),
+body:has([data-docchat-shell]) {
+  height: 100%;
+  overflow: hidden;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
