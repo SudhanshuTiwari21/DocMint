@@ -477,10 +477,10 @@ export function ChatClient() {
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-full md:translate-x-0`}
+        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:min-h-0 md:max-h-full md:translate-x-0`}
       >
-        {/* min-h-0 + flex-1 lets the chat list shrink and scroll; usage stays pinned at bottom */}
-        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        {/* min-h-0 so flex child can shrink; middle list scrolls, usage stays at bottom */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
             <button
@@ -493,7 +493,7 @@ export function ChatClient() {
           </div>
 
           <div
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 [scrollbar-gutter:stable]"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3"
             style={{ WebkitOverflowScrolling: "touch" }}
             aria-label="Chat history"
           >
@@ -528,7 +528,7 @@ export function ChatClient() {
           </div>
 
           {usage && (
-            <div className="shrink-0 space-y-3 border-t border-slate-200 bg-[#f4f4f5] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="shrink-0 space-y-3 border-t border-slate-200 px-3 py-3 dark:border-neutral-800">
               <div>
                 <div className="flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-1.5">
