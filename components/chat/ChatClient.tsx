@@ -62,7 +62,7 @@ export function ChatClient() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -111,9 +111,19 @@ export function ChatClient() {
     }
   }, []);
 
+  // Scroll only the inner messages panel to the latest content — never the window (no scrollIntoView on the page).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const run = () => {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    };
+    // After React paints new messages, scrollHeight is correct
+    const t = requestAnimationFrame(() => {
+      requestAnimationFrame(run);
+    });
+    return () => cancelAnimationFrame(t);
+  }, [messages, sending]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -262,7 +272,7 @@ export function ChatClient() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       {/* Sidebar */}
       <aside
         className={`${
@@ -403,8 +413,8 @@ export function ChatClient() {
         </div>
       </aside>
 
-      {/* Main Chat Area */}
-      <div className="flex flex-1 flex-col">
+      {/* Main Chat Area — min-h-0 so the messages region can shrink and scroll internally */}
+      <div className="flex min-h-0 flex-1 flex-col">
         {/* Mobile sidebar toggle */}
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2 dark:border-neutral-800 md:hidden">
           <button
@@ -419,8 +429,11 @@ export function ChatClient() {
           </span>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Messages — min-h-0 + overflow-y-auto = this div scrolls, not the whole page */}
+        <div
+          ref={messagesScrollRef}
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
+        >
           {!activeDoc ? (
             <div className="flex h-full flex-col items-center justify-center px-4">
               <BookOpen className="h-16 w-16 text-slate-200 dark:text-slate-700" />
@@ -486,7 +499,6 @@ export function ChatClient() {
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
           )}
         </div>

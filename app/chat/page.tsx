@@ -4,18 +4,16 @@ import { ChatClient } from "@/components/chat/ChatClient";
 
 export const metadata: Metadata = {
   ...getDefaultMetadata({
-    title: "DocChat – AI PDF Q&A for Exam Prep | Dockera",
+    title: "DocChat – Ask questions about your PDFs | Dockera",
     description:
-      "Upload any PDF and ask questions with DocChat. AI-powered document Q&A for competitive exam prep – UPSC, SSC, banking, and more. Free to start.",
+      "Upload a PDF and chat with DocChat. Get answers grounded in your document—notes, reports, forms, or any text-based PDF. Free to start.",
     keywords: [
       "DocChat",
       "PDF chatbot",
       "AI PDF reader",
-      "exam preparation",
-      "UPSC study",
-      "SSC preparation",
       "PDF Q&A",
       "document chat",
+      "ask PDF questions",
     ],
     path: "/chat",
   }),

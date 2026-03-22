@@ -5,6 +5,7 @@ import { getEmbedding } from "@/lib/openai";
 import { chatCompletion, type ChatMessage } from "@/lib/openai";
 import { queryChunks } from "@/lib/pinecone";
 import { checkChatUsage, recordChatUsage, checkIpRateLimit } from "@/lib/chatRateLimit";
+import { assistantReplyToPlainText } from "@/lib/assistantPlainText";
 
 export async function POST(request: Request) {
   if (!checkIpRateLimit(request)) {
@@ -44,19 +45,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "documentId and message are required" }, { status: 400 });
   }
 
-  const docs = await query<{ namespace: string; user_id: string }[]>(
-    `SELECT namespace, user_id::text FROM chat_documents WHERE id = $1`,
+  const docs = await query<{ namespace: string; user_id: string; filename: string }[]>(
+    `SELECT namespace, user_id::text, filename FROM chat_documents WHERE id = $1`,
     [documentId]
   );
   if (docs.length === 0 || docs[0].user_id !== userId) {
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
   const namespace = docs[0].namespace;
+  const docFilename = docs[0].filename ?? "";
 
   const questionEmbedding = await getEmbedding(message.trim());
 
-  const relevantChunks = await queryChunks(namespace, questionEmbedding, 5);
+  // More chunks = better for broad questions ("what is this about?"); top-5 often missed resume headers/summary.
+  const relevantChunks = await queryChunks(namespace, questionEmbedding, 10);
   const context = relevantChunks.map((c) => c.text).join("\n\n");
+
+  const filenameHint =
+    docFilename.trim().length > 0
+      ? `\nOriginal filename (optional hint for topic or format): ${docFilename}\n`
+      : "";
 
   let convoId = conversationId;
   if (convoId) {
@@ -89,8 +97,17 @@ export async function POST(request: Request) {
 
   const systemPrompt: ChatMessage = {
     role: "system",
-    content: `You are DocChat, an AI assistant that answers questions based on the provided document context. Answer accurately using the context below. If the answer is not in the context, say you don't have enough information from the document. Be concise and helpful. This tool helps students prepare for government exams like SSC, UPSC, banking, and state-level competitive exams.
+    content: `You are DocChat, Dockera's assistant. The user uploaded a PDF; below is DOCUMENT CONTEXT (machine-retrieved excerpts—not the full file).
 
+How to answer:
+- Base every answer on the excerpts. When the excerpts clearly imply something (topic, document kind, entities, dates) via wording, structure, or sections, state it briefly—do not require a literal sentence that labels the document if the content already shows what it is.
+- If the excerpts do not contain enough to answer, say you don't have enough in the retrieved text and suggest a more specific question if helpful.
+- For broad questions ("what is this about?"), use whatever appears in the excerpts: titles, headings, recurring terms, filename hint, and flow of content.
+- Stay neutral: any PDF is allowed (reports, books, forms, legal notices, technical docs, personal files, etc.). Do not assume a specific domain unless the text supports it.
+- Be concise and accurate.
+- Formatting: reply in plain text only. Do not use Markdown (no **, __, #, bullets with -, numbered lists with markdown, or backticks). Use normal sentences; short line breaks are fine.
+
+${filenameHint}
 DOCUMENT CONTEXT:
 ${context}`,
   };
@@ -102,6 +119,7 @@ ${context}`,
   ];
 
   const result = await chatCompletion(messages, 1024);
+  const replyPlain = assistantReplyToPlainText(result.content);
 
   await query(
     `INSERT INTO chat_messages (conversation_id, role, content, tokens_used)
@@ -111,7 +129,7 @@ ${context}`,
   await query(
     `INSERT INTO chat_messages (conversation_id, role, content, tokens_used)
      VALUES ($1, 'assistant', $2, $3)`,
-    [convoId, result.content, result.tokensUsed]
+    [convoId, replyPlain, result.tokensUsed]
   );
   await query(
     `UPDATE chat_conversations SET updated_at = NOW() WHERE id = $1`,
@@ -124,7 +142,7 @@ ${context}`,
 
   return NextResponse.json({
     conversationId: convoId,
-    message: { role: "assistant", content: result.content },
+    message: { role: "assistant", content: replyPlain },
     usage: updatedUsage,
   });
 }
