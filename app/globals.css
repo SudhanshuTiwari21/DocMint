@@ -135,3 +135,24 @@ body {
   background: linear-gradient(120deg, transparent 0%, rgba(148, 163, 184, 0.1) 50%, transparent 100%);
   background-size: 200% 100%;
 }
+
+/* DocChat FAB — gentle float on the speech bubble */
+@keyframes docchatBubbleFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .animate-docchat-bubble {
+    animation: docchatBubbleFloat 3s ease-in-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-docchat-bubble {
+    animation: none;
+  }
+}

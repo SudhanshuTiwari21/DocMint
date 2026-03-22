@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from "react";
 import Link from "next/link";
 import {
   Upload,
@@ -26,7 +32,7 @@ type Doc = {
 
 type Convo = {
   id: string;
-  document_id: string;
+  document_id: string | null;
   title: string;
   filename: string;
   message_count: string;
@@ -64,6 +70,8 @@ export function ChatClient() {
 
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /** When true, next scroll-to-bottom is forced (send, open conversation, new chat). */
+  const forceScrollToBottomRef = useRef(true);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -101,6 +109,7 @@ export function ChatClient() {
     });
     if (res.ok) {
       const data = await res.json();
+      forceScrollToBottomRef.current = true;
       setMessages(
         (data.messages ?? []).map((m: { id: string; role: string; content: string }) => ({
           id: m.id,
@@ -111,18 +120,33 @@ export function ChatClient() {
     }
   }, []);
 
-  // Scroll only the inner messages panel to the latest content — never the window (no scrollIntoView on the page).
-  useEffect(() => {
+  /**
+   * Follow the latest message inside the messages panel only (never the window).
+   * If the user scrolled up to read history, we don't jump unless they send a message
+   * or we force (open conversation / new chat).
+   */
+  useLayoutEffect(() => {
     const el = messagesScrollRef.current;
     if (!el) return;
-    const run = () => {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    if (messages.length === 0 && !sending) return;
+
+    const scrollToEnd = () => {
+      el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
     };
-    // After React paints new messages, scrollHeight is correct
-    const t = requestAnimationFrame(() => {
-      requestAnimationFrame(run);
-    });
-    return () => cancelAnimationFrame(t);
+
+    if (forceScrollToBottomRef.current) {
+      forceScrollToBottomRef.current = false;
+      scrollToEnd();
+      requestAnimationFrame(scrollToEnd);
+      return;
+    }
+
+    const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const nearBottom = gap < 100;
+    if (nearBottom) {
+      scrollToEnd();
+      requestAnimationFrame(scrollToEnd);
+    }
   }, [messages, sending]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,11 +189,13 @@ export function ChatClient() {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || !activeDoc || sending) return;
+    if (!input.trim() || sending) return;
+    if (usage !== null && !usage.allowed) return;
     const userMsg = input.trim();
     setInput("");
     setSending(true);
     setError(null);
+    forceScrollToBottomRef.current = true;
 
     setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
 
@@ -178,7 +204,7 @@ export function ChatClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          documentId: activeDoc.id,
+          ...(activeDoc ? { documentId: activeDoc.id } : {}),
           conversationId: activeConvo,
           message: userMsg,
         }),
@@ -221,15 +247,28 @@ export function ChatClient() {
   };
 
   const openConvo = (convo: Convo) => {
-    const doc = docs.find((d) => d.id === convo.document_id);
-    if (doc) setActiveDoc(doc);
+    if (convo.document_id) {
+      const doc = docs.find((d) => d.id === convo.document_id);
+      setActiveDoc(doc ?? null);
+    } else {
+      setActiveDoc(null);
+    }
     setActiveConvo(convo.id);
     loadMessages(convo.id);
     setSidebarOpen(false);
   };
 
   const startNewChat = (doc: Doc) => {
+    forceScrollToBottomRef.current = true;
     setActiveDoc(doc);
+    setActiveConvo(null);
+    setMessages([]);
+    setSidebarOpen(false);
+  };
+
+  const startGeneralChat = () => {
+    forceScrollToBottomRef.current = true;
+    setActiveDoc(null);
     setActiveConvo(null);
     setMessages([]);
     setSidebarOpen(false);
@@ -248,10 +287,10 @@ export function ChatClient() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4">
         <BookOpen className="h-16 w-16 text-slate-300 dark:text-slate-600" />
         <h1 className="mt-6 text-2xl font-bold text-slate-900 dark:text-slate-100">
-          DocChat — AI PDF Q&A
+          DocChat
         </h1>
         <p className="mt-3 max-w-md text-center text-slate-600 dark:text-slate-400">
-          Upload study materials and ask questions about them. Perfect for exam preparation — UPSC, SSC, banking exams, and more.
+          Chat for exam prep and general help, or upload a PDF or Word (.docx) to ask about a file.
         </p>
         <div className="mt-8 flex gap-3">
           <Link
@@ -280,25 +319,34 @@ export function ChatClient() {
         } fixed inset-y-14 left-0 z-40 w-72 border-r border-slate-200 bg-slate-50 transition-transform dark:border-neutral-800 dark:bg-neutral-950 md:relative md:inset-y-0 md:translate-x-0`}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-            >
-              {uploading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Upload className="h-3.5 w-3.5" />
-              )}
-              Upload PDF
-            </button>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={startGeneralChat}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800"
+              >
+                New chat
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+              >
+                {uploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                Upload file
+              </button>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="hidden"
               onChange={handleUpload}
             />
@@ -372,9 +420,9 @@ export function ChatClient() {
 
             {docs.length === 0 && convos.length === 0 && (
               <div className="mt-8 text-center">
-                <Upload className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
+                <MessageSquare className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
                 <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                  Upload a PDF to get started
+                  Start a general chat, or upload a PDF or Word (.docx).
                 </p>
               </div>
             )}
@@ -425,36 +473,46 @@ export function ChatClient() {
             {sidebarOpen ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5 rotate-180" />}
           </button>
           <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
-            {activeDoc ? activeDoc.filename : "DocChat"}
+            {activeDoc?.filename ?? (activeConvo ? "Chat" : "DocChat")}
           </span>
         </div>
 
-        {/* Messages — min-h-0 + overflow-y-auto = this div scrolls, not the whole page */}
+        {/* Messages — flex column so empty states can flex-1 and center vertically in the pane */}
         <div
           ref={messagesScrollRef}
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
+          onScroll={() => {
+            const el = messagesScrollRef.current;
+            if (!el) return;
+            const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+            if (gap > 120) {
+              forceScrollToBottomRef.current = false;
+            }
+          }}
         >
-          {!activeDoc ? (
-            <div className="flex h-full flex-col items-center justify-center px-4">
-              <BookOpen className="h-16 w-16 text-slate-200 dark:text-slate-700" />
+          {messages.length === 0 && !activeDoc ? (
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10 text-center">
+              <BookOpen className="h-16 w-16 shrink-0 text-slate-200 dark:text-slate-700" />
               <h2 className="mt-6 text-xl font-bold text-slate-900 dark:text-slate-100">
                 Welcome to DocChat
               </h2>
-              <p className="mt-2 max-w-sm text-center text-sm text-slate-500 dark:text-slate-400">
-                Upload a PDF from the sidebar and start asking questions. Ideal for studying textbooks, previous year papers, and reference material for competitive exams.
+              <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+                Ask anything—exam prep, study tips, or general questions. Optionally upload a PDF or Word (.docx) in the sidebar to chat with that file.
               </p>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-              >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                Upload your first PDF
-              </button>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"
+                >
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Upload PDF or Word
+                </button>
+              </div>
             </div>
-          ) : messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center px-4">
+          ) : messages.length === 0 && activeDoc ? (
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10 text-center">
               <FileText className="h-12 w-12 text-slate-300 dark:text-slate-600" />
               <h3 className="mt-4 font-semibold text-slate-900 dark:text-slate-100">
                 {activeDoc.filename}
@@ -467,7 +525,7 @@ export function ChatClient() {
               </p>
             </div>
           ) : (
-            <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
+            <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 pb-10">
               {messages.map((msg, i) => (
                 <div
                   key={msg.id ?? i}
@@ -514,48 +572,52 @@ export function ChatClient() {
           </div>
         )}
 
-        {/* Input */}
-        {activeDoc && (
-          <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
-            <div className="mx-auto flex max-w-3xl items-end gap-2">
+        {/* Input — always available: general chat or PDF-backed */}
+        <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
+          <div className="mx-auto flex max-w-3xl items-end gap-2">
+            <button
+              type="button"
+              onClick={() => (activeDoc ? startNewChat(activeDoc) : startGeneralChat())}
+              className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-400 dark:hover:bg-neutral-900"
+              title={activeDoc ? "New chat with this document" : "New general chat"}
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+            <div className="relative flex-1">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder={
+                  activeDoc
+                    ? "Ask a question about this document..."
+                    : "Message DocChat — exam prep, study tips, or anything else..."
+                }
+                rows={1}
+                className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-neutral-600"
+                disabled={sending || (usage !== null && !usage.allowed)}
+              />
               <button
                 type="button"
-                onClick={() => startNewChat(activeDoc)}
-                className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-400 dark:hover:bg-neutral-900"
-                title="New chat with this document"
+                onClick={handleSend}
+                disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
+                className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
               >
-                <Plus className="h-5 w-5" />
+                <Send className="h-4 w-4" />
               </button>
-              <div className="relative flex-1">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder="Ask a question about your document..."
-                  rows={1}
-                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-neutral-600"
-                  disabled={sending || (usage !== null && !usage.allowed)}
-                />
-                <button
-                  type="button"
-                  onClick={handleSend}
-                  disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
-                  className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
             </div>
-            <p className="mt-1.5 text-center text-[11px] text-slate-400 dark:text-slate-500">
-              DocChat uses AI to answer questions from your document. Answers may not always be perfect.
-            </p>
           </div>
-        )}
+          <p className="mt-1.5 text-center text-[11px] text-slate-400 dark:text-slate-500">
+            {activeDoc
+              ? "Answers use your uploaded PDF. AI can make mistakes."
+              : "General chat — upload a PDF or Word (.docx) anytime to ask about a file."}
+          </p>
+        </div>
       </div>
 
       {/* Overlay for mobile sidebar */}

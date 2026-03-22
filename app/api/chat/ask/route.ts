@@ -7,6 +7,17 @@ import { queryChunks } from "@/lib/pinecone";
 import { checkChatUsage, recordChatUsage, checkIpRateLimit } from "@/lib/chatRateLimit";
 import { assistantReplyToPlainText } from "@/lib/assistantPlainText";
 
+const GENERAL_SYSTEM = `You are DocChat, Dockera's assistant. The user is chatting without a PDF attached in this thread.
+
+You can:
+- Help with exam preparation (study plans, concepts, practice ideas) for Indian competitive exams and school subjects when asked.
+- Answer general questions, clarify topics, and have a helpful conversation.
+- Suggest uploading a PDF in DocChat when detailed questions about a specific document would help.
+
+Be accurate, concise, and friendly. If a question needs content from a file you cannot see, say so briefly and suggest they upload the PDF or paste relevant text.
+
+Formatting: plain text only. Do not use Markdown (no **, __, #, markdown bullets, or backticks).`;
+
 export async function POST(request: Request) {
   if (!checkIpRateLimit(request)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
@@ -33,71 +44,82 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { documentId?: string; conversationId?: string; message?: string };
+  let body: { documentId?: string | null; conversationId?: string | null; message?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { documentId, conversationId, message } = body;
-  if (!documentId || !message || message.trim().length === 0) {
-    return NextResponse.json({ error: "documentId and message are required" }, { status: 400 });
+  const { conversationId, message } = body;
+  const documentIdFromBody =
+    typeof body.documentId === "string" && body.documentId.trim().length > 0
+      ? body.documentId.trim()
+      : null;
+
+  if (!message || message.trim().length === 0) {
+    return NextResponse.json({ error: "message is required" }, { status: 400 });
   }
 
-  const docs = await query<{ namespace: string; user_id: string; filename: string }[]>(
-    `SELECT namespace, user_id::text, filename FROM chat_documents WHERE id = $1`,
-    [documentId]
-  );
-  if (docs.length === 0 || docs[0].user_id !== userId) {
-    return NextResponse.json({ error: "Document not found" }, { status: 404 });
-  }
-  const namespace = docs[0].namespace;
-  const docFilename = docs[0].filename ?? "";
+  let convoId: string;
+  let documentIdForRag: string | null = null;
 
-  const questionEmbedding = await getEmbedding(message.trim());
-
-  // More chunks = better for broad questions ("what is this about?"); top-5 often missed resume headers/summary.
-  const relevantChunks = await queryChunks(namespace, questionEmbedding, 10);
-  const context = relevantChunks.map((c) => c.text).join("\n\n");
-
-  const filenameHint =
-    docFilename.trim().length > 0
-      ? `\nOriginal filename (optional hint for topic or format): ${docFilename}\n`
-      : "";
-
-  let convoId = conversationId;
-  if (convoId) {
-    const convoRows = await query<{ id: string }[]>(
-      `SELECT id FROM chat_conversations WHERE id = $1 AND user_id = $2`,
-      [convoId, userId]
+  if (conversationId) {
+    const convoRows = await query<{ id: string; document_id: string | null }[]>(
+      `SELECT id, document_id FROM chat_conversations WHERE id = $1 AND user_id = $2`,
+      [conversationId, userId]
     );
     if (convoRows.length === 0) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
+    convoId = convoRows[0].id;
+    documentIdForRag = convoRows[0].document_id;
   } else {
+    if (documentIdFromBody) {
+      const docs = await query<{ id: string }[]>(
+        `SELECT id FROM chat_documents WHERE id = $1 AND user_id = $2`,
+        [documentIdFromBody, userId]
+      );
+      if (docs.length === 0) {
+        return NextResponse.json({ error: "Document not found" }, { status: 404 });
+      }
+      documentIdForRag = documentIdFromBody;
+    }
+
     const title = message.trim().slice(0, 80);
     const newConvo = await query<{ id: string }[]>(
       `INSERT INTO chat_conversations (user_id, document_id, title)
        VALUES ($1, $2, $3) RETURNING id`,
-      [userId, documentId, title]
+      [userId, documentIdForRag, title]
     );
     convoId = newConvo[0].id;
   }
 
-  const historyRows = await query<{ role: string; content: string }[]>(
-    `SELECT role, content FROM chat_messages
-     WHERE conversation_id = $1
-     ORDER BY created_at DESC LIMIT 10`,
-    [convoId]
-  );
-  const history: ChatMessage[] = historyRows
-    .reverse()
-    .map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
+  let systemPrompt: ChatMessage;
 
-  const systemPrompt: ChatMessage = {
-    role: "system",
-    content: `You are DocChat, Dockera's assistant. The user uploaded a PDF; below is DOCUMENT CONTEXT (machine-retrieved excerpts—not the full file).
+  if (documentIdForRag) {
+    const docs = await query<{ namespace: string; user_id: string; filename: string }[]>(
+      `SELECT namespace, user_id::text, filename FROM chat_documents WHERE id = $1`,
+      [documentIdForRag]
+    );
+    if (docs.length === 0 || docs[0].user_id !== userId) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+    }
+    const namespace = docs[0].namespace;
+    const docFilename = docs[0].filename ?? "";
+
+    const questionEmbedding = await getEmbedding(message.trim());
+    const relevantChunks = await queryChunks(namespace, questionEmbedding, 10);
+    const context = relevantChunks.map((c) => c.text).join("\n\n");
+
+    const filenameHint =
+      docFilename.trim().length > 0
+        ? `\nOriginal filename (optional hint for topic or format): ${docFilename}\n`
+        : "";
+
+    systemPrompt = {
+      role: "system",
+      content: `You are DocChat, Dockera's assistant. The user uploaded a PDF; below is DOCUMENT CONTEXT (machine-retrieved excerpts—not the full file).
 
 How to answer:
 - Base every answer on the excerpts. When the excerpts clearly imply something (topic, document kind, entities, dates) via wording, structure, or sections, state it briefly—do not require a literal sentence that labels the document if the content already shows what it is.
@@ -110,7 +132,23 @@ How to answer:
 ${filenameHint}
 DOCUMENT CONTEXT:
 ${context}`,
-  };
+    };
+  } else {
+    systemPrompt = {
+      role: "system",
+      content: GENERAL_SYSTEM,
+    };
+  }
+
+  const historyRows = await query<{ role: string; content: string }[]>(
+    `SELECT role, content FROM chat_messages
+     WHERE conversation_id = $1
+     ORDER BY created_at DESC LIMIT 10`,
+    [convoId]
+  );
+  const history: ChatMessage[] = historyRows
+    .reverse()
+    .map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
 
   const messages: ChatMessage[] = [
     systemPrompt,
@@ -131,10 +169,7 @@ ${context}`,
      VALUES ($1, 'assistant', $2, $3)`,
     [convoId, replyPlain, result.tokensUsed]
   );
-  await query(
-    `UPDATE chat_conversations SET updated_at = NOW() WHERE id = $1`,
-    [convoId]
-  );
+  await query(`UPDATE chat_conversations SET updated_at = NOW() WHERE id = $1`, [convoId]);
 
   await recordChatUsage(userId, result.tokensUsed);
 

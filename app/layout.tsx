@@ -4,6 +4,7 @@ import { getDefaultMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { DocChatFab } from "@/components/DocChatFab";
 
 export const metadata: Metadata = {
   ...getDefaultMetadata(),
@@ -58,6 +59,7 @@ export default function RootLayout({
           <Header />
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
           <Footer />
+          <DocChatFab />
         </ThemeProvider>
       </body>
     </html>

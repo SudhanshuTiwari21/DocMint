@@ -10,18 +10,19 @@ export async function GET() {
 
   const rows = await query<{
     id: string;
-    document_id: string;
+    document_id: string | null;
     title: string;
-    filename: string;
+    filename: string | null;
     message_count: string;
     created_at: string;
     updated_at: string;
   }[]>(
-    `SELECT c.id, c.document_id, c.title, d.filename,
+    `SELECT c.id, c.document_id, c.title,
+            COALESCE(d.filename, 'General chat') AS filename,
             (SELECT COUNT(*) FROM chat_messages m WHERE m.conversation_id = c.id)::text AS message_count,
             c.created_at::text, c.updated_at::text
      FROM chat_conversations c
-     JOIN chat_documents d ON d.id = c.document_id
+     LEFT JOIN chat_documents d ON d.id = c.document_id
      WHERE c.user_id = $1
      ORDER BY c.updated_at DESC
      LIMIT 50`,

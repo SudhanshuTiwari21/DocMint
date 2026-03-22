@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { query } from "@/lib/db";
-import { extractTextFromPdf } from "@/lib/pdfExtract";
+import {
+  extractTextFromUploadedDocument,
+  isAllowedChatUploadFilename,
+} from "@/lib/documentExtract";
 import { chunkText } from "@/lib/chunker";
 import { getEmbeddings } from "@/lib/openai";
 import { upsertChunks, type ChunkVector } from "@/lib/pinecone";
@@ -41,11 +44,17 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file");
   if (!file || !(file instanceof File)) {
-    return NextResponse.json({ error: "No PDF file provided" }, { status: 400 });
+    return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  if (!file.name.toLowerCase().endsWith(".pdf")) {
-    return NextResponse.json({ error: "Only PDF files are supported" }, { status: 400 });
+  if (!isAllowedChatUploadFilename(file.name)) {
+    return NextResponse.json(
+      {
+        error:
+          "Upload a PDF or Word document (.docx). Legacy .doc files are not supported—save as .docx or PDF first.",
+      },
+      { status: 400 }
+    );
   }
 
   const maxBytes = isPremium ? PRO_MAX_PDF_BYTES : FREE_MAX_PDF_BYTES;
@@ -60,23 +69,30 @@ export async function POST(request: Request) {
   let text: string;
   let pageCount: number;
   try {
-    const result = await extractTextFromPdf(buffer);
+    const result = await extractTextFromUploadedDocument(buffer, file.name);
     text = result.text;
     pageCount = result.pageCount;
-  } catch {
-    return NextResponse.json({ error: "Could not extract text from PDF" }, { status: 400 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Could not read file";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
   if (text.trim().length < 50) {
     return NextResponse.json(
-      { error: "PDF has too little extractable text. It may be scanned or image-based." },
+      {
+        error:
+          "Too little extractable text. For PDFs, the file may be scanned or image-based. For Word, try a file with selectable text.",
+      },
       { status: 400 }
     );
   }
 
   const chunks = chunkText(text, 500, 50);
   if (chunks.length === 0) {
-    return NextResponse.json({ error: "No text chunks could be created from the PDF" }, { status: 400 });
+    return NextResponse.json(
+      { error: "No text chunks could be created from this file" },
+      { status: 400 }
+    );
   }
 
   const rows = await query<{ id: string }[]>(
