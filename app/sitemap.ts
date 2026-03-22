@@ -51,6 +51,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/bihar-police-photo-signature-size", changeFrequency: "monthly", priority: 0.8 },
     { path: "/bihar-psc-photo-size", changeFrequency: "monthly", priority: 0.8 },
     { path: "/rajasthan-police-photo-signature-requirements", changeFrequency: "monthly", priority: 0.8 },
+    // DocChat & Blog
+    { path: "/chat", changeFrequency: "weekly", priority: 0.9 },
+    { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
+    { path: "/blog/introducing-docchat-ai-pdf-qa", changeFrequency: "monthly", priority: 0.7 },
     // Guides
     { path: "/guides", changeFrequency: "weekly", priority: 0.7 },
     { path: "/guides/exam-photo-requirements", changeFrequency: "monthly", priority: 0.8 },

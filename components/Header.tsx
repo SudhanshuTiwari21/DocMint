@@ -181,6 +181,12 @@ export function Header() {
       >
         Guides
       </Link>
+      <Link
+        href="/chat"
+        className="whitespace-nowrap rounded-md bg-emerald-50 px-2 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50 lg:px-3"
+      >
+        DocChat
+      </Link>
     </nav>
   );
 
@@ -339,6 +345,13 @@ export function Header() {
             onClick={() => setMobileOpen(false)}
           >
             Guides
+          </Link>
+          <Link
+            href="/chat"
+            className="rounded-md bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+            onClick={() => setMobileOpen(false)}
+          >
+            DocChat AI
           </Link>
           <div className="mt-2 flex gap-2 border-t border-slate-200 pt-3 dark:border-neutral-700">
             {user ? (

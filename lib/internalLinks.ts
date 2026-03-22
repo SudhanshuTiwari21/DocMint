@@ -62,6 +62,8 @@ export const toolHubLinks: InternalLink[] = [
   { href: "/tools", label: "All tools" },
   { href: "/tools/image-tools", label: "Image tools" },
   { href: "/tools/pdf-tools", label: "PDF tools" },
+  { href: "/chat", label: "DocChat – AI PDF Q&A" },
   { href: "/guides", label: "Guides" },
   { href: "/guides/exam-photo-requirements", label: "Exam photo & signature requirements" },
+  { href: "/blog", label: "Blog" },
 ];

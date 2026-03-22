@@ -17,11 +17,14 @@ export const metadata: Metadata = {
 const basicFeatures = [
   "Access to essential Dockera tools",
   "Limited document processing",
+  "DocChat: 10 messages/day, 3 PDFs",
 ];
 
 const premiumFeatures = [
   "Full access to all Dockera tools",
   "Unlimited document processing",
+  "DocChat: 200 messages/day, unlimited PDFs (50 MB)",
+  "Ideal for exam prep – UPSC, SSC, banking & more",
   "Access across Web, Mobile, and Desktop",
   "Ad-free experience",
   "Works on all devices",

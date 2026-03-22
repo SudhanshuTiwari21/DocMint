@@ -104,6 +104,12 @@ export default function HomePage() {
                 All tools
               </Link>
               <Link
+                href="/chat"
+                className="animate-hero-buttons animate-hero-btn-1 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                DocChat AI
+              </Link>
+              <Link
                 href="/tools/resize-image-to-100kb"
                 className="animate-hero-buttons animate-hero-btn-1 inline-flex items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-100 px-5 py-3.5 text-base font-semibold text-white dark:text-slate-900 shadow-sm hover:bg-slate-800 dark:hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:focus-visible:outline-slate-100 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
@@ -140,6 +146,8 @@ export default function HomePage() {
             <Link href="/tools/pdf-tools" className="font-medium text-slate-900 underline dark:text-slate-100 hover:no-underline">PDF tools</Link>
             {" · "}
             <Link href="/guides" className="font-medium text-slate-900 underline dark:text-slate-100 hover:no-underline">guides</Link>
+            {" · "}
+            <Link href="/chat" className="font-medium text-emerald-700 underline dark:text-emerald-400 hover:no-underline">DocChat AI</Link>
             .
           </p>
         </div>

@@ -4,10 +4,12 @@ const toolLinks = [
   { href: "/tools", label: "All tools" },
   { href: "/tools/image-tools", label: "Image tools" },
   { href: "/tools/pdf-tools", label: "PDF tools" },
+  { href: "/chat", label: "DocChat AI" },
 ];
 
 const guideLinks = [
   { href: "/guides", label: "Guides" },
+  { href: "/blog", label: "Blog" },
 ];
 
 const legalLinks = [
