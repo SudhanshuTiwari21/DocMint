@@ -458,12 +458,9 @@ export function ChatClient() {
     usage.documentsLimit !== null &&
     usage.documentsUploaded >= usage.documentsLimit;
 
-  /** Viewport minus header — constrains flex row so inner panes scroll independently */
-  const shellH = "h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)]";
-
   return (
     <div
-      className={`flex w-full flex-1 flex-row items-stretch gap-3 overflow-hidden bg-[#ececf1] p-2 sm:gap-4 sm:p-4 dark:bg-neutral-950 ${shellH} min-h-0`}
+      className="flex min-h-0 w-full flex-1 flex-row items-stretch gap-3 overflow-hidden bg-[#ececf1] p-2 sm:gap-4 sm:p-4 dark:bg-neutral-950"
     >
       <input
         ref={fileInputRef}
@@ -477,7 +474,7 @@ export function ChatClient() {
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-full md:translate-x-0 min-h-0`}
+        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-full md:min-h-0 md:translate-x-0`}
       >
         {/*
           min-h-0 on aside: flex items default to min-height:auto and won't shrink below content.
