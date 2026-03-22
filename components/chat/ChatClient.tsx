@@ -311,12 +311,12 @@ export function ChatClient() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      {/* Sidebar */}
+    <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
+      {/* Sidebar — row layout so main chat sits to the right on md+ (flex-col was stacking sidebar above the pane) */}
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed inset-y-14 left-0 z-40 w-72 border-r border-slate-200 bg-slate-50 transition-transform dark:border-neutral-800 dark:bg-neutral-950 md:relative md:inset-y-0 md:translate-x-0`}
+        } fixed inset-y-14 left-0 z-40 w-72 shrink-0 border-r border-slate-200 bg-slate-50 transition-transform dark:border-neutral-800 dark:bg-neutral-950 md:static md:inset-auto md:h-full md:translate-x-0`}
       >
         <div className="flex h-full flex-col">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
@@ -461,8 +461,8 @@ export function ChatClient() {
         </div>
       </aside>
 
-      {/* Main Chat Area — min-h-0 so the messages region can shrink and scroll internally */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      {/* Main Chat Area — fills space to the right of the sidebar */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* Mobile sidebar toggle */}
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2 dark:border-neutral-800 md:hidden">
           <button

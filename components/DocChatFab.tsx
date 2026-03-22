@@ -38,7 +38,7 @@ export function DocChatFab() {
             Any question about your PDF?
           </p>
           <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300 sm:text-xs">
-            Prepare for your exam using your notes.
+            Prepare for your exam using DocChat.
           </p>
         </div>
 
