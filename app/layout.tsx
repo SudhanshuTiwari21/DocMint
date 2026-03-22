@@ -57,7 +57,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col antialiased bg-background text-foreground">
         <ThemeProvider>
           <Header />
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+          <main className="flex min-h-0 flex-1 flex-col basis-0">{children}</main>
           <ConditionalFooter />
           <DocChatFab />
         </ThemeProvider>

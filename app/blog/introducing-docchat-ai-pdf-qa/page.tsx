@@ -1,6 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDefaultMetadata } from "@/lib/seo";
+import { BookOpen } from "lucide-react";
+import {
+  NotionPageShell,
+  NotionPageIcon,
+  NotionBreadcrumb,
+  NotionMetaRow,
+  NotionTitle,
+  NotionLead,
+  NotionDivider,
+  NotionH2,
+  NotionP,
+  NotionOl,
+  NotionLi,
+  NotionCallout,
+  NotionInlineLink,
+  NotionFooterNav,
+} from "@/components/blog/NotionDocStyles";
 
 export const metadata: Metadata = {
   ...getDefaultMetadata({
@@ -34,114 +50,102 @@ const articleSchema = {
 
 export default function DocChatBlogPost() {
   return (
-    <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+    <NotionPageShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
 
-      <header>
-        <time className="text-sm text-slate-500 dark:text-slate-400">
-          March 3, 2026
-        </time>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
-          Introducing DocChat — AI-Powered PDF Q&A for Exam Prep
-        </h1>
-        <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
-          Upload any PDF — textbooks, previous year papers, handwritten notes
-          — and ask questions about it instantly. DocChat uses
-          Retrieval-Augmented Generation (RAG) to give you accurate,
-          context-aware answers from your own documents.
-        </p>
-      </header>
+      <NotionBreadcrumb
+        items={[
+          { href: "/", label: "Home" },
+          { href: "/blog", label: "Blog" },
+          { label: "Introducing DocChat" },
+        ]}
+      />
 
-      <div className="prose prose-slate mt-10 max-w-none dark:prose-invert">
-        <h2>Why DocChat?</h2>
+      <NotionPageIcon>
+        <BookOpen className="h-7 w-7 text-[#37352f] dark:text-neutral-200" strokeWidth={1.5} />
+      </NotionPageIcon>
+
+      <NotionMetaRow date="March 3, 2026" readTime="4 min read" tag="Product" />
+
+      <NotionTitle>Introducing DocChat — AI-Powered PDF Q&amp;A for Exam Prep</NotionTitle>
+
+      <NotionLead>
+        Upload textbooks, previous-year papers, or long notes as PDFs (or Word), then ask questions in plain language.
+        Answers are grounded in your file using retrieval-augmented generation — not generic web text.
+      </NotionLead>
+
+      <NotionDivider />
+
+      <NotionCallout title="At a glance">
         <p>
-          Students preparing for competitive exams — UPSC CSE, SSC CGL, IBPS
-          PO, RRB Group D, and state-level exams — often deal with hundreds
-          of pages of study material. Finding specific answers in a
-          500-page PDF is time-consuming. DocChat solves this by letting you
-          ask questions in plain language and get answers directly from the
-          document.
+          DocChat is built for serious, document-heavy preparation: one place to read, ask, and revise without
+          hunting through hundreds of pages manually.
         </p>
+      </NotionCallout>
 
-        <h2>How it works</h2>
-        <ol>
-          <li>
-            <strong>Upload a PDF</strong> — drag and drop or click to upload
-            your study material.
-          </li>
-          <li>
-            <strong>Ask a question</strong> — type any question about the
-            document content.
-          </li>
-          <li>
-            <strong>Get an answer</strong> — DocChat retrieves the most
-            relevant sections and generates a concise answer.
-          </li>
-        </ol>
+      <NotionH2>Why we built it</NotionH2>
+      <NotionP>
+        Candidates for UPSC CSE, SSC CGL, banking, railways, and state services routinely work from large PDFs —
+        compilations, coaching notes, and official material. Search-within-PDF is brittle; generic chat does not
+        know your file. DocChat keeps the conversation tied to what you uploaded.
+      </NotionP>
 
-        <h2>Built for exam preparation</h2>
-        <p>
-          DocChat is designed with Indian competitive exam students in mind.
-          Whether you&#39;re revising polity from Laxmikanth, practicing
-          previous year question papers, or going through a coaching
-          institute&#39;s notes — DocChat can help you study faster and more
-          effectively.
-        </p>
+      <NotionH2>How it works</NotionH2>
+      <NotionOl>
+        <NotionLi index={1}>
+          <strong className="font-semibold text-[#37352f] dark:text-neutral-200">Start a chat</strong> — You can
+          begin with a general question; no upload is required to open a thread.
+        </NotionLi>
+        <NotionLi index={2}>
+          <strong className="font-semibold text-[#37352f] dark:text-neutral-200">Attach a document</strong> — When
+          you are ready, use the + control in the composer to add a PDF or .docx to the same conversation.
+        </NotionLi>
+        <NotionLi index={3}>
+          <strong className="font-semibold text-[#37352f] dark:text-neutral-200">Ask</strong> — Subsequent answers
+          can use indexed excerpts from that file, in addition to general reasoning when appropriate.
+        </NotionLi>
+      </NotionOl>
 
-        <h2>Free and Pro plans</h2>
-        <p>
-          Free users get <strong>10 messages per day</strong> and can upload
-          up to <strong>3 documents</strong>. This is enough to try DocChat
-          and see if it fits your study routine.{" "}
-          <Link href="/pricing" className="font-medium underline">
-            Pro users
-          </Link>{" "}
-          get <strong>200 messages per day</strong>, unlimited document
-          uploads, and larger file size support (up to 50 MB).
-        </p>
+      <NotionH2>Designed for exam preparation</NotionH2>
+      <NotionP>
+        The product defaults to clear, plain-text replies (no markdown noise) and is tuned for revision workflows:
+        summaries, clarification of dense passages, and quick checks against your own material — whether that is
+        polity, quantitative aptitude, or a technical handbook.
+      </NotionP>
 
-        <h2>Privacy first</h2>
-        <p>
-          Your documents are processed securely. We use embeddings to index
-          the content and do not share your files with anyone. You can delete
-          your documents and all associated data at any time from the{" "}
-          <Link href="/chat" className="font-medium underline">
-            DocChat
-          </Link>{" "}
-          sidebar.
-        </p>
+      <NotionH2>Plans</NotionH2>
+      <NotionP>
+        Free tier includes a daily message allowance and a limited number of document uploads so you can evaluate fit
+        with your study routine.{" "}
+        <NotionInlineLink href="/pricing">Pro</NotionInlineLink> raises daily limits and upload capacity for heavier
+        use. See the pricing page for current numbers.
+      </NotionP>
 
-        <h2>Try DocChat now</h2>
-        <p>
-          Head to{" "}
-          <Link href="/chat" className="font-medium underline">
-            DocChat
-          </Link>{" "}
-          to upload your first document and start asking questions. No credit
-          card required — start for free.
-        </p>
+      <NotionH2>Data handling</NotionH2>
+      <NotionP>
+        Content is embedded for search over your documents; we do not use your files for training public models.
+        You can manage uploads from the DocChat interface. For full legal terms, see{" "}
+        <NotionInlineLink href="/privacy">Privacy</NotionInlineLink> and{" "}
+        <NotionInlineLink href="/terms">Terms</NotionInlineLink>.
+      </NotionP>
 
-        <p>
-          Also check out our{" "}
-          <Link href="/tools" className="font-medium underline">
-            free PDF and image tools
-          </Link>{" "}
-          for resizing images, compressing PDFs, and creating passport photos
-          for government forms.
-        </p>
-      </div>
+      <NotionDivider />
 
-      <footer className="mt-12 border-t border-slate-200 pt-8 dark:border-neutral-800">
-        <Link
-          href="/blog"
-          className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-        >
-          &larr; Back to blog
-        </Link>
-      </footer>
-    </article>
+      <NotionH2>Try DocChat</NotionH2>
+      <NotionP>
+        Open <NotionInlineLink href="/chat">DocChat</NotionInlineLink> to start a thread. No card required for the
+        free tier.
+      </NotionP>
+      <NotionP>
+        Dockera also offers{" "}
+        <NotionInlineLink href="/tools">free image and PDF utilities</NotionInlineLink> — resize, compress, convert —
+        for forms and submissions alongside your prep.
+      </NotionP>
+
+      <NotionFooterNav href="/blog" label="Back to blog" />
+    </NotionPageShell>
   );
 }

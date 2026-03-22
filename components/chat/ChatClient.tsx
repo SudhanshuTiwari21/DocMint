@@ -17,6 +17,8 @@ import {
   X,
   BookOpen,
   ChevronLeft,
+  FileText,
+  Check,
 } from "lucide-react";
 
 type ActiveDoc = {
@@ -50,6 +52,11 @@ type Usage = {
   tokensLimit: number | null;
 };
 
+type AttachmentChip = {
+  name: string;
+  status: "uploading" | "ready";
+};
+
 export function ChatClient() {
   const [convos, setConvos] = useState<Convo[]>([]);
   const [activeDoc, setActiveDoc] = useState<ActiveDoc | null>(null);
@@ -58,6 +65,7 @@ export function ChatClient() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [attachmentChip, setAttachmentChip] = useState<AttachmentChip | null>(null);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -66,6 +74,9 @@ export function ChatClient() {
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const forceScrollToBottomRef = useRef(true);
+  /** Resolves when the current upload (embeddings stored) finishes; ask() must await this first. */
+  const uploadInFlightRef = useRef<Promise<void> | null>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -127,53 +138,96 @@ export function ChatClient() {
     }
   }, [messages, sending]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const abortUpload = useCallback(() => {
+    uploadAbortRef.current?.abort();
+    uploadAbortRef.current = null;
+    uploadInFlightRef.current = null;
+    setUploading(false);
+    setAttachmentChip(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
 
-    if (!activeConvo) {
-      setError("Send a message first to start the chat, then you can attach a file.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-
-    const form = new FormData();
-    form.append("file", file);
-    form.append("conversationId", activeConvo);
-
-    try {
-      const res = await fetch("/api/chat/upload", {
-        method: "POST",
-        body: form,
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Upload failed");
+  const startUpload = useCallback(
+    (file: File) => {
+      if (!activeConvo) {
+        setError("Send a message first to start the chat, then you can attach a file.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
-      setActiveDoc({
-        id: data.documentId,
-        filename: data.filename,
-        page_count: data.pageCount,
-        chunk_count: data.chunkCount,
+
+      uploadAbortRef.current?.abort();
+      const ac = new AbortController();
+      uploadAbortRef.current = ac;
+
+      setAttachmentChip({ name: file.name, status: "uploading" });
+      setUploading(true);
+      setError(null);
+
+      const p = (async () => {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("conversationId", activeConvo);
+
+        const res = await fetch("/api/chat/upload", {
+          method: "POST",
+          body: form,
+          credentials: "include",
+          signal: ac.signal,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error ?? "Upload failed");
+        }
+        setActiveDoc({
+          id: data.documentId,
+          filename: data.filename,
+          page_count: data.pageCount,
+          chunk_count: data.chunkCount,
+        });
+        setAttachmentChip({ name: file.name, status: "ready" });
+        await loadConvos();
+      })();
+
+      uploadInFlightRef.current = p;
+
+      p.catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (err instanceof Error && err.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : "Upload failed");
+        setAttachmentChip(null);
+        setActiveDoc(null);
+      }).finally(() => {
+        setUploading(false);
+        uploadInFlightRef.current = null;
+        uploadAbortRef.current = null;
+        if (fileInputRef.current) fileInputRef.current.value = "";
       });
-      await loadConvos();
-    } catch {
-      setError("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    },
+    [activeConvo, loadConvos]
+  );
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    startUpload(file);
   };
 
   const handleSend = async () => {
     if (!input.trim() || sending) return;
     if (usage !== null && !usage.allowed) return;
+
     const userMsg = input.trim();
+
+    // LLM runs only after embeddings exist: wait for any in-flight upload to finish first.
+    const uploadWait = uploadInFlightRef.current;
+    if (uploadWait) {
+      try {
+        await uploadWait;
+      } catch {
+        return;
+      }
+    }
+
     setInput("");
     setSending(true);
     setError(null);
@@ -210,13 +264,16 @@ export function ChatClient() {
   };
 
   const openConvo = (convo: Convo) => {
+    abortUpload();
     if (convo.document_id) {
       setActiveDoc({
         id: convo.document_id,
         filename: convo.filename,
       });
+      setAttachmentChip({ name: convo.filename, status: "ready" });
     } else {
       setActiveDoc(null);
+      setAttachmentChip(null);
     }
     setActiveConvo(convo.id);
     loadMessages(convo.id);
@@ -224,9 +281,11 @@ export function ChatClient() {
   };
 
   const startGeneralChat = () => {
+    abortUpload();
     forceScrollToBottomRef.current = true;
     setActiveDoc(null);
     setActiveConvo(null);
+    setAttachmentChip(null);
     setMessages([]);
     setSidebarOpen(false);
   };
@@ -271,24 +330,29 @@ export function ChatClient() {
     activeDoc?.filename ??
     (activeConvo ? "Chat" : "DocChat");
 
+  /** Viewport minus header — constrains flex row so inner panes scroll independently */
+  const shellH = "h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)]";
+
   return (
-    <div className="flex h-full min-h-[calc(100dvh-3.5rem)] flex-1 flex-row gap-2 overflow-hidden bg-[#ececf1] p-2 sm:gap-3 sm:p-3 md:gap-4 md:p-4 dark:bg-neutral-950">
+    <div
+      className={`flex w-full flex-1 flex-row items-stretch gap-3 overflow-hidden bg-[#ececf1] p-2 sm:gap-4 sm:p-4 dark:bg-neutral-950 ${shellH} min-h-0`}
+    >
       <input
         ref={fileInputRef}
         type="file"
         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         className="hidden"
-        onChange={handleUpload}
+        onChange={handleFileChange}
       />
 
-      {/* Left: chats list */}
+      {/* Left: chats — own scroll; fixed width; does not shrink with messages */}
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed inset-y-14 left-2 z-40 flex w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:inset-auto md:h-full md:w-72 md:max-w-none md:translate-x-0`}
+        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-none md:translate-x-0`}
       >
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
             <button
               type="button"
@@ -299,7 +363,7 @@ export function ChatClient() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-4">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
             {convos.length > 0 ? (
               <ul className="space-y-1">
                 {convos.map((c) => (
@@ -331,7 +395,7 @@ export function ChatClient() {
           </div>
 
           {usage && (
-            <div className="border-t border-slate-200 px-4 py-3 dark:border-neutral-800">
+            <div className="shrink-0 border-t border-slate-200 px-4 py-3 dark:border-neutral-800">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>
                   {usage.messagesUsed}/{usage.messagesLimit} messages today
@@ -363,10 +427,10 @@ export function ChatClient() {
         </div>
       </aside>
 
-      {/* Right: chat box */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {/* Right: chat — column fills remaining width; messages scroll inside */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <section
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md dark:border-neutral-700 dark:bg-neutral-950"
+          className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md dark:border-neutral-700 dark:bg-neutral-950"
           aria-label="Chat"
         >
           <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 px-3 py-2.5 dark:border-neutral-800 md:px-4 md:py-3">
@@ -384,7 +448,8 @@ export function ChatClient() {
 
           <div
             ref={messagesScrollRef}
-            className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain"
+            style={{ WebkitOverflowScrolling: "touch" }}
             onScroll={() => {
               const el = messagesScrollRef.current;
               if (!el) return;
@@ -401,9 +466,9 @@ export function ChatClient() {
                   Welcome to DocChat
                 </h2>
                 <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                  Ask anything—or send a message first, then use the{" "}
-                  <span className="font-medium text-slate-700 dark:text-slate-300">+</span> button to attach a PDF or
-                  Word file to this chat.
+                  Ask anything—or send a message first, then use{" "}
+                  <span className="font-medium text-slate-700 dark:text-slate-300">+</span> to attach a file. Your
+                  message is sent after the file is indexed.
                 </p>
               </div>
             ) : (
@@ -453,54 +518,88 @@ export function ChatClient() {
             </div>
           )}
 
+          {/* Composer + attachment strip */}
           <div className="shrink-0 border-t border-slate-200/90 bg-white px-3 pb-3 pt-3 dark:border-neutral-800 dark:bg-neutral-950 sm:px-4 sm:pb-4">
-            <div className="mx-auto flex w-full max-w-3xl items-end gap-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || !activeConvo}
-                className="mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-400 dark:hover:bg-neutral-800"
-                title={
-                  activeConvo
-                    ? "Attach PDF or Word to this chat"
-                    : "Send a message first, then attach a file"
-                }
-              >
-                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
-              </button>
-              <div className="relative flex min-h-[52px] min-w-0 flex-1 flex-row items-end gap-1 rounded-[26px] border border-slate-200/90 bg-white px-3 py-2 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-none">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder={
-                    activeDoc
-                      ? "Ask about your uploaded file, or anything else…"
-                      : "Message DocChat — exam prep, study tips, or anything else…"
-                  }
-                  rows={1}
-                  className="max-h-40 min-h-[36px] min-w-0 flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-500"
-                  disabled={sending || (usage !== null && !usage.allowed)}
-                />
+            <div className="mx-auto w-full max-w-3xl space-y-2">
+              {attachmentChip && (
+                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900">
+                  <FileText className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+                    {attachmentChip.name}
+                  </span>
+                  {attachmentChip.status === "uploading" && (
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Indexing…
+                    </span>
+                  )}
+                  {attachmentChip.status === "ready" && (
+                    <span className="flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                      <Check className="h-3.5 w-3.5" />
+                      Ready
+                    </span>
+                  )}
+                  {attachmentChip.status === "uploading" && (
+                    <button
+                      type="button"
+                      onClick={() => abortUpload()}
+                      className="shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-neutral-800 dark:hover:text-slate-200"
+                      title="Cancel upload"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-end gap-2">
                 <button
                   type="button"
-                  onClick={handleSend}
-                  disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
-                  className="mb-1 mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || !activeConvo}
+                  className="mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-400 dark:hover:bg-neutral-800"
+                  title={
+                    activeConvo
+                      ? "Attach PDF or Word to this chat"
+                      : "Send a message first, then attach a file"
+                  }
                 >
-                  <Send className="h-4 w-4" />
+                  {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
                 </button>
+                <div className="relative flex min-h-[52px] min-w-0 flex-1 flex-row items-end gap-1 rounded-[26px] border border-slate-200/90 bg-white px-3 py-2 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-none">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder={
+                      activeDoc
+                        ? "Ask about your uploaded file, or anything else…"
+                        : "Message DocChat — exam prep, study tips, or anything else…"
+                    }
+                    rows={1}
+                    className="max-h-40 min-h-[36px] min-w-0 flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    disabled={sending || (usage !== null && !usage.allowed)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSend}
+                    disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
+                    className="mb-1 mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
             <p className="mt-2 text-center text-[11px] text-slate-400 dark:text-slate-500">
               {activeDoc
-                ? "Replies can use your uploaded file. AI can make mistakes."
-                : "General chat — after your first message, use + to add a file."}
+                ? "Replies use your file when indexed. AI can make mistakes."
+                : "Attach a file with + — it appears above; send runs after indexing finishes."}
             </p>
           </div>
         </section>
