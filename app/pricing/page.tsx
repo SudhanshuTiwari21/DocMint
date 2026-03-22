@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   ...getDefaultMetadata({
     title: "Pricing – Dockera",
     description:
-      "Free and Pro plans for Dockera. Start for free with essential document tools. Upgrade to Pro for unlimited processing, ad-free experience and more.",
+      "Free and Pro plans for Dockera. DocChat is free to use with up to 3 indexed files; Pro adds unlimited uploads and full tools. Upgrade for ad-free experience and more.",
     path: "/pricing",
   }),
 };
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
 const basicFeatures = [
   "Access to essential Dockera tools",
   "Limited document processing",
-  "DocChat: 10 messages/day, 3 PDFs",
+  "DocChat: unlimited chat — up to 3 indexed PDF & Word files (10 MB each)",
 ];
 
 const premiumFeatures = [
   "Full access to all Dockera tools",
   "Unlimited document processing",
-  "DocChat: 200 messages/day, unlimited PDFs (50 MB)",
+  "DocChat: unlimited chat + unlimited file uploads (up to 50 MB each)",
   "Ideal for exam prep – UPSC, SSC, banking & more",
   "Access across Web, Mobile, and Desktop",
   "Ad-free experience",

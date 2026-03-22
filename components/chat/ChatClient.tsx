@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   FileText,
   Check,
+  Upload,
 } from "lucide-react";
 
 type ActiveDoc = {
@@ -49,9 +50,15 @@ type Msg = {
 type Usage = {
   allowed: boolean;
   messagesUsed: number;
-  messagesLimit: number;
+  /** null = unlimited chat. */
+  messagesLimit: number | null;
   tokensUsed: number;
   tokensLimit: number | null;
+  /** Total indexed documents in DocChat (lifetime cap for free tier). */
+  documentsUploaded: number;
+  /** null = unlimited (Pro). */
+  documentsLimit: number | null;
+  isPremium: boolean;
 };
 
 type AttachmentChip = {
@@ -97,9 +104,20 @@ export function ChatClient() {
     }
   }, []);
 
+  const loadUsage = useCallback(async () => {
+    const res = await fetch("/api/chat/usage", { credentials: "include" });
+    if (res.ok) {
+      const data = await res.json();
+      setUsage(data as Usage);
+    }
+  }, []);
+
   useEffect(() => {
-    if (authed) loadConvos();
-  }, [authed, loadConvos]);
+    if (authed) {
+      loadConvos();
+      loadUsage();
+    }
+  }, [authed, loadConvos, loadUsage]);
 
   const loadMessages = useCallback(async (convoId: string) => {
     const res = await fetch(`/api/chat/messages?conversationId=${convoId}`, {
@@ -214,6 +232,7 @@ export function ChatClient() {
           orphanDocumentIdRef.current = null;
         }
         await loadConvos();
+        await loadUsage();
       })();
 
       uploadInFlightRef.current = p;
@@ -232,7 +251,7 @@ export function ChatClient() {
         if (fileInputRef.current) fileInputRef.current.value = "";
       });
     },
-    [activeConvo, loadConvos]
+    [activeConvo, loadConvos, loadUsage]
   );
 
   /** Remove attachment after indexing (or cancel in-flight upload). */
@@ -256,10 +275,11 @@ export function ChatClient() {
       setActiveDoc(null);
       setAttachmentChip(null);
       await loadConvos();
+      await loadUsage();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to remove file");
     }
-  }, [activeDoc, attachmentChip?.status, abortUpload, loadConvos]);
+  }, [activeDoc, attachmentChip?.status, abortUpload, loadConvos, loadUsage]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -271,7 +291,6 @@ export function ChatClient() {
     const userMsg = input.trim();
     const hasDoc = !!activeDoc?.id;
     if ((!userMsg && !hasDoc) || sending) return;
-    if (usage !== null && !usage.allowed) return;
 
     // LLM runs only after embeddings exist: wait for any in-flight upload to finish first.
     const uploadWait = uploadInFlightRef.current;
@@ -336,7 +355,7 @@ export function ChatClient() {
         setActiveConvo(data.conversationId);
         loadConvos();
       }
-      if (data.usage) setUsage(data.usage);
+      await loadUsage();
     } catch {
       setError("Failed to send message. Please try again.");
       setMessages((prev) => prev.slice(0, -1));
@@ -433,6 +452,12 @@ export function ChatClient() {
     activeDoc?.filename ??
     (activeConvo ? "Chat" : "DocChat");
 
+  const docUploadBlocked =
+    usage !== null &&
+    !usage.isPremium &&
+    usage.documentsLimit !== null &&
+    usage.documentsUploaded >= usage.documentsLimit;
+
   /** Viewport minus header — constrains flex row so inner panes scroll independently */
   const shellH = "h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)]";
 
@@ -498,31 +523,73 @@ export function ChatClient() {
           </div>
 
           {usage && (
-            <div className="shrink-0 border-t border-slate-200 px-4 py-3 dark:border-neutral-800">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>
-                  {usage.messagesUsed}/{usage.messagesLimit} messages today
-                </span>
-                {usage.tokensLimit !== null && (
-                  <span>
-                    {usage.tokensUsed}/{usage.tokensLimit} tokens
+            <div className="shrink-0 space-y-3 border-t border-slate-200 px-3 py-3 dark:border-neutral-800">
+              <div>
+                <div className="flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+                    Chat messages
                   </span>
+                  <span className="text-[11px] font-semibold normal-case tracking-normal text-emerald-600 dark:text-emerald-400">
+                    Unlimited
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
+                  Free for everyone — no daily cap
+                </p>
+                {usage.messagesUsed > 0 && (
+                  <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+                    {usage.messagesUsed.toLocaleString()} sent today
+                  </p>
                 )}
               </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-700">
-                <div
-                  className="h-full rounded-full bg-slate-900 transition-all dark:bg-slate-100"
-                  style={{
-                    width: `${Math.min(100, (usage.messagesUsed / usage.messagesLimit) * 100)}%`,
-                  }}
-                />
+
+              <div>
+                <div className="flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <Upload className="h-3.5 w-3.5" aria-hidden />
+                    File uploads
+                  </span>
+                  {usage.isPremium || usage.documentsLimit === null ? (
+                    <span className="text-[11px] font-semibold normal-case tracking-normal text-emerald-600 dark:text-emerald-400">
+                      Unlimited
+                    </span>
+                  ) : (
+                    <span className="tabular-nums text-slate-700 dark:text-slate-300">
+                      {Math.max(0, usage.documentsLimit - usage.documentsUploaded)} left
+                    </span>
+                  )}
+                </div>
+                {usage.isPremium || usage.documentsLimit === null ? (
+                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
+                    Pro — no cap on PDF &amp; Word uploads
+                  </p>
+                ) : (
+                  <>
+                    <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
+                      {usage.documentsUploaded} of {usage.documentsLimit} indexed files (lifetime on free)
+                    </p>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-700">
+                      <div
+                        className="h-full rounded-full bg-slate-600 transition-all dark:bg-slate-400"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            (usage.documentsUploaded / usage.documentsLimit) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              {!usage.allowed && (
+
+              {docUploadBlocked && (
                 <Link
                   href="/pricing"
-                  className="mt-2 block text-center text-xs font-medium text-slate-900 underline dark:text-slate-100"
+                  className="block rounded-lg bg-slate-900 px-2 py-1.5 text-center text-[11px] font-semibold text-white shadow-sm hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 >
-                  Upgrade to Pro for more
+                  Upgrade for unlimited file uploads
                 </Link>
               )}
             </div>
@@ -669,9 +736,13 @@ export function ChatClient() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
+                  disabled={uploading || docUploadBlocked}
                   className="mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-400 dark:hover:bg-neutral-800"
-                  title="Attach PDF or Word (you can attach before or after your first message)"
+                  title={
+                    docUploadBlocked
+                      ? "Free plan file limit reached — upgrade for unlimited uploads"
+                      : "Attach PDF or Word (you can attach before or after your first message)"
+                  }
                 >
                   {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
                 </button>
@@ -692,7 +763,7 @@ export function ChatClient() {
                     }
                     rows={1}
                     className="max-h-40 min-h-[36px] min-w-0 flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-500"
-                    disabled={sending || (usage !== null && !usage.allowed)}
+                    disabled={sending}
                   />
                   <button
                     type="button"
@@ -700,7 +771,6 @@ export function ChatClient() {
                     disabled={
                       (!input.trim() && !activeDoc?.id) ||
                       sending ||
-                      (usage !== null && !usage.allowed) ||
                       uploading ||
                       attachmentChip?.status === "uploading"
                     }

@@ -38,19 +38,6 @@ export async function POST(request: Request) {
   const userId = session.sub;
   const isPremium = session.tier === "premium";
 
-  const usage = await checkChatUsage(userId, isPremium);
-  if (!usage.allowed) {
-    return NextResponse.json(
-      {
-        error: isPremium
-          ? "Daily message limit reached. Try again tomorrow."
-          : "Daily limit reached. Upgrade to Pro for more messages.",
-        usage,
-      },
-      { status: 429 }
-    );
-  }
-
   let body: {
     conversationId?: string | null;
     message?: string;

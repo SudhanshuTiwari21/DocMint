@@ -1,24 +1,27 @@
 import { query } from "@/lib/db";
 import crypto from "crypto";
 
-const FREE_MESSAGES_PER_DAY = 10;
-const FREE_TOKENS_PER_DAY = 5000;
-const PRO_MESSAGES_PER_DAY = 200;
-
 const IP_WINDOW_MS = 60_000;
 const IP_MAX_REQUESTS = 60;
 
 export type ChatUsageState = {
+  /** Always true — chat has no daily cap; free vs Pro differs only on file uploads (see usage API). */
   allowed: boolean;
   messagesUsed: number;
-  messagesLimit: number;
+  /** null = unlimited (chat is free for all signed-in users). */
+  messagesLimit: number | null;
   tokensUsed: number;
+  /** null = no token cap for chat. */
   tokensLimit: number | null;
 };
 
+/**
+ * DocChat message limits: none. Free users are limited only by indexed document count (FREE_DOC_LIMIT)
+ * enforced in the upload route; Pro gets unlimited uploads + larger files.
+ */
 export async function checkChatUsage(
   userId: string,
-  isPremium: boolean
+  _isPremium: boolean
 ): Promise<ChatUsageState> {
   const rows = await query<{ messages_count: number; tokens_used: number }[]>(
     `SELECT messages_count, tokens_used FROM chat_usage
@@ -29,14 +32,13 @@ export async function checkChatUsage(
   const messagesUsed = rows[0]?.messages_count ?? 0;
   const tokensUsed = rows[0]?.tokens_used ?? 0;
 
-  const messagesLimit = isPremium ? PRO_MESSAGES_PER_DAY : FREE_MESSAGES_PER_DAY;
-  const tokensLimit = isPremium ? null : FREE_TOKENS_PER_DAY;
-
-  const allowed =
-    messagesUsed < messagesLimit &&
-    (tokensLimit === null || tokensUsed < tokensLimit);
-
-  return { allowed, messagesUsed, messagesLimit, tokensUsed, tokensLimit };
+  return {
+    allowed: true,
+    messagesUsed,
+    messagesLimit: null,
+    tokensUsed,
+    tokensLimit: null,
+  };
 }
 
 export async function recordChatUsage(
