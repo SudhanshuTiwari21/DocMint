@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { documentId?: string | null; conversationId?: string | null; message?: string };
+  let body: { conversationId?: string | null; message?: string };
   try {
     body = await request.json();
   } catch {
@@ -52,10 +52,6 @@ export async function POST(request: Request) {
   }
 
   const { conversationId, message } = body;
-  const documentIdFromBody =
-    typeof body.documentId === "string" && body.documentId.trim().length > 0
-      ? body.documentId.trim()
-      : null;
 
   if (!message || message.trim().length === 0) {
     return NextResponse.json({ error: "message is required" }, { status: 400 });
@@ -75,22 +71,12 @@ export async function POST(request: Request) {
     convoId = convoRows[0].id;
     documentIdForRag = convoRows[0].document_id;
   } else {
-    if (documentIdFromBody) {
-      const docs = await query<{ id: string }[]>(
-        `SELECT id FROM chat_documents WHERE id = $1 AND user_id = $2`,
-        [documentIdFromBody, userId]
-      );
-      if (docs.length === 0) {
-        return NextResponse.json({ error: "Document not found" }, { status: 404 });
-      }
-      documentIdForRag = documentIdFromBody;
-    }
-
+    // New thread always starts as general chat; attach PDFs later via upload to this conversation.
     const title = message.trim().slice(0, 80);
     const newConvo = await query<{ id: string }[]>(
       `INSERT INTO chat_conversations (user_id, document_id, title)
-       VALUES ($1, $2, $3) RETURNING id`,
-      [userId, documentIdForRag, title]
+       VALUES ($1, NULL, $2) RETURNING id`,
+      [userId, title]
     );
     convoId = newConvo[0].id;
   }

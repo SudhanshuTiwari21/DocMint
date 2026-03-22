@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { getDefaultMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { ConditionalFooter } from "@/components/ConditionalFooter";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { DocChatFab } from "@/components/DocChatFab";
 
@@ -58,7 +58,7 @@ export default function RootLayout({
         <ThemeProvider>
           <Header />
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-          <Footer />
+          <ConditionalFooter />
           <DocChatFab />
         </ThemeProvider>
       </body>

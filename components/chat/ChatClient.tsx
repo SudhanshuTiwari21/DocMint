@@ -9,12 +9,9 @@ import {
 } from "react";
 import Link from "next/link";
 import {
-  Upload,
   Send,
-  FileText,
   MessageSquare,
   Plus,
-  Trash2,
   Loader2,
   AlertCircle,
   X,
@@ -22,12 +19,11 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
-type Doc = {
+type ActiveDoc = {
   id: string;
   filename: string;
-  chunk_count: number;
-  page_count: number;
-  created_at: string;
+  page_count?: number;
+  chunk_count?: number;
 };
 
 type Convo = {
@@ -55,9 +51,8 @@ type Usage = {
 };
 
 export function ChatClient() {
-  const [docs, setDocs] = useState<Doc[]>([]);
   const [convos, setConvos] = useState<Convo[]>([]);
-  const [activeDoc, setActiveDoc] = useState<Doc | null>(null);
+  const [activeDoc, setActiveDoc] = useState<ActiveDoc | null>(null);
   const [activeConvo, setActiveConvo] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -70,7 +65,6 @@ export function ChatClient() {
 
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  /** When true, next scroll-to-bottom is forced (send, open conversation, new chat). */
   const forceScrollToBottomRef = useRef(true);
 
   useEffect(() => {
@@ -78,14 +72,6 @@ export function ChatClient() {
       .then((r) => r.json())
       .then((d) => setAuthed(!!d?.user))
       .catch(() => setAuthed(false));
-  }, []);
-
-  const loadDocs = useCallback(async () => {
-    const res = await fetch("/api/chat/documents", { credentials: "include" });
-    if (res.ok) {
-      const data = await res.json();
-      setDocs(data.documents ?? []);
-    }
   }, []);
 
   const loadConvos = useCallback(async () => {
@@ -97,11 +83,8 @@ export function ChatClient() {
   }, []);
 
   useEffect(() => {
-    if (authed) {
-      loadDocs();
-      loadConvos();
-    }
-  }, [authed, loadDocs, loadConvos]);
+    if (authed) loadConvos();
+  }, [authed, loadConvos]);
 
   const loadMessages = useCallback(async (convoId: string) => {
     const res = await fetch(`/api/chat/messages?conversationId=${convoId}`, {
@@ -120,11 +103,6 @@ export function ChatClient() {
     }
   }, []);
 
-  /**
-   * Follow the latest message inside the messages panel only (never the window).
-   * If the user scrolled up to read history, we don't jump unless they send a message
-   * or we force (open conversation / new chat).
-   */
   useLayoutEffect(() => {
     const el = messagesScrollRef.current;
     if (!el) return;
@@ -152,11 +130,19 @@ export function ChatClient() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!activeConvo) {
+      setError("Send a message first to start the chat, then you can attach a file.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     setError(null);
 
     const form = new FormData();
     form.append("file", file);
+    form.append("conversationId", activeConvo);
 
     try {
       const res = await fetch("/api/chat/upload", {
@@ -169,17 +155,13 @@ export function ChatClient() {
         setError(data.error ?? "Upload failed");
         return;
       }
-      await loadDocs();
-      const newDoc: Doc = {
+      setActiveDoc({
         id: data.documentId,
         filename: data.filename,
-        chunk_count: data.chunkCount,
         page_count: data.pageCount,
-        created_at: new Date().toISOString(),
-      };
-      setActiveDoc(newDoc);
-      setActiveConvo(null);
-      setMessages([]);
+        chunk_count: data.chunkCount,
+      });
+      await loadConvos();
     } catch {
       setError("Upload failed. Please try again.");
     } finally {
@@ -204,7 +186,6 @@ export function ChatClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...(activeDoc ? { documentId: activeDoc.id } : {}),
           conversationId: activeConvo,
           message: userMsg,
         }),
@@ -228,41 +209,17 @@ export function ChatClient() {
     }
   };
 
-  const handleDeleteDoc = async (docId: string) => {
-    try {
-      await fetch(`/api/chat/documents?id=${docId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (activeDoc?.id === docId) {
-        setActiveDoc(null);
-        setActiveConvo(null);
-        setMessages([]);
-      }
-      loadDocs();
-      loadConvos();
-    } catch {
-      setError("Failed to delete document");
-    }
-  };
-
   const openConvo = (convo: Convo) => {
     if (convo.document_id) {
-      const doc = docs.find((d) => d.id === convo.document_id);
-      setActiveDoc(doc ?? null);
+      setActiveDoc({
+        id: convo.document_id,
+        filename: convo.filename,
+      });
     } else {
       setActiveDoc(null);
     }
     setActiveConvo(convo.id);
     loadMessages(convo.id);
-    setSidebarOpen(false);
-  };
-
-  const startNewChat = (doc: Doc) => {
-    forceScrollToBottomRef.current = true;
-    setActiveDoc(doc);
-    setActiveConvo(null);
-    setMessages([]);
     setSidebarOpen(false);
   };
 
@@ -290,7 +247,7 @@ export function ChatClient() {
           DocChat
         </h1>
         <p className="mt-3 max-w-md text-center text-slate-600 dark:text-slate-400">
-          Chat for exam prep and general help, or upload a PDF or Word (.docx) to ask about a file.
+          General chat or upload PDFs and Word (.docx) in any thread—after you send your first message.
         </p>
         <div className="mt-8 flex gap-3">
           <Link
@@ -310,119 +267,64 @@ export function ChatClient() {
     );
   }
 
+  const chatTitle =
+    activeDoc?.filename ??
+    (activeConvo ? "Chat" : "DocChat");
+
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
-      {/* Sidebar — row layout so main chat sits to the right on md+ (flex-col was stacking sidebar above the pane) */}
+    <div className="flex h-full min-h-[calc(100dvh-3.5rem)] flex-1 flex-row gap-2 overflow-hidden bg-[#ececf1] p-2 sm:gap-3 sm:p-3 md:gap-4 md:p-4 dark:bg-neutral-950">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        className="hidden"
+        onChange={handleUpload}
+      />
+
+      {/* Left: chats list */}
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed inset-y-14 left-0 z-40 w-72 shrink-0 border-r border-slate-200 bg-slate-50 transition-transform dark:border-neutral-800 dark:bg-neutral-950 md:static md:inset-auto md:h-full md:translate-x-0`}
+        } fixed inset-y-14 left-2 z-40 flex w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:inset-auto md:h-full md:w-72 md:max-w-none md:translate-x-0`}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
-                onClick={startGeneralChat}
-                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800"
-              >
-                New chat
-              </button>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-              >
-                {uploading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Upload className="h-3.5 w-3.5" />
-                )}
-                Upload file
-              </button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              className="hidden"
-              onChange={handleUpload}
-            />
+            <button
+              type="button"
+              onClick={startGeneralChat}
+              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-neutral-600 dark:text-slate-300 dark:hover:bg-neutral-800"
+            >
+              New chat
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-4">
-            {docs.length > 0 && (
-              <div>
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Documents
-                </h3>
-                <ul className="space-y-1">
-                  {docs.map((doc) => (
-                    <li
-                      key={doc.id}
-                      className={`group flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm cursor-pointer transition ${
-                        activeDoc?.id === doc.id
+            {convos.length > 0 ? (
+              <ul className="space-y-1">
+                {convos.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition ${
+                        activeConvo === c.id
                           ? "bg-slate-200 text-slate-900 dark:bg-neutral-800 dark:text-slate-100"
                           : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-neutral-900"
                       }`}
+                      onClick={() => openConvo(c)}
                     >
-                      <FileText className="h-4 w-4 shrink-0" />
-                      <button
-                        type="button"
-                        className="flex-1 truncate text-left"
-                        onClick={() => startNewChat(doc)}
-                        title={doc.filename}
-                      >
-                        {doc.filename}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc.id); }}
-                        className="hidden shrink-0 rounded p-0.5 text-slate-400 hover:bg-red-100 hover:text-red-600 group-hover:block dark:hover:bg-red-900/30"
-                        title="Delete document"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {convos.length > 0 && (
-              <div>
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Conversations
-                </h3>
-                <ul className="space-y-1">
-                  {convos.map((c) => (
-                    <li key={c.id}>
-                      <button
-                        type="button"
-                        className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition ${
-                          activeConvo === c.id
-                            ? "bg-slate-200 text-slate-900 dark:bg-neutral-800 dark:text-slate-100"
-                            : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-neutral-900"
-                        }`}
-                        onClick={() => openConvo(c)}
-                      >
-                        <MessageSquare className="h-4 w-4 shrink-0" />
-                        <span className="flex-1 truncate">{c.title}</span>
-                        <span className="shrink-0 text-xs text-slate-400">{c.message_count}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {docs.length === 0 && convos.length === 0 && (
+                      <MessageSquare className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 truncate">{c.title}</span>
+                      <span className="shrink-0 text-xs text-slate-400">{c.message_count}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
               <div className="mt-8 text-center">
                 <MessageSquare className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
                 <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                  Start a general chat, or upload a PDF or Word (.docx).
+                  No chats yet. Say hello in the main panel to start.
                 </p>
               </div>
             )}
@@ -461,166 +363,149 @@ export function ChatClient() {
         </div>
       </aside>
 
-      {/* Main Chat Area — fills space to the right of the sidebar */}
+      {/* Right: chat box */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        {/* Mobile sidebar toggle */}
-        <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2 dark:border-neutral-800 md:hidden">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen((o) => !o)}
-            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-neutral-800"
-          >
-            {sidebarOpen ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5 rotate-180" />}
-          </button>
-          <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
-            {activeDoc?.filename ?? (activeConvo ? "Chat" : "DocChat")}
-          </span>
-        </div>
-
-        {/* Messages — flex column so empty states can flex-1 and center vertically in the pane */}
-        <div
-          ref={messagesScrollRef}
-          className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
-          onScroll={() => {
-            const el = messagesScrollRef.current;
-            if (!el) return;
-            const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
-            if (gap > 120) {
-              forceScrollToBottomRef.current = false;
-            }
-          }}
+        <section
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md dark:border-neutral-700 dark:bg-neutral-950"
+          aria-label="Chat"
         >
-          {messages.length === 0 && !activeDoc ? (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10 text-center">
-              <BookOpen className="h-16 w-16 shrink-0 text-slate-200 dark:text-slate-700" />
-              <h2 className="mt-6 text-xl font-bold text-slate-900 dark:text-slate-100">
-                Welcome to DocChat
-              </h2>
-              <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                Ask anything—exam prep, study tips, or general questions. Optionally upload a PDF or Word (.docx) in the sidebar to chat with that file.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"
-                >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  Upload PDF or Word
-                </button>
+          <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 px-3 py-2.5 dark:border-neutral-800 md:px-4 md:py-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((o) => !o)}
+              className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-neutral-800 md:hidden"
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5 rotate-180" />}
+            </button>
+            <span className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+              {chatTitle}
+            </span>
+          </div>
+
+          <div
+            ref={messagesScrollRef}
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
+            onScroll={() => {
+              const el = messagesScrollRef.current;
+              if (!el) return;
+              const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+              if (gap > 120) {
+                forceScrollToBottomRef.current = false;
+              }
+            }}
+          >
+            {messages.length === 0 ? (
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10 text-center">
+                <BookOpen className="h-16 w-16 shrink-0 text-slate-200 dark:text-slate-700" />
+                <h2 className="mt-6 text-xl font-bold text-slate-900 dark:text-slate-100">
+                  Welcome to DocChat
+                </h2>
+                <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+                  Ask anything—or send a message first, then use the{" "}
+                  <span className="font-medium text-slate-700 dark:text-slate-300">+</span> button to attach a PDF or
+                  Word file to this chat.
+                </p>
               </div>
-            </div>
-          ) : messages.length === 0 && activeDoc ? (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10 text-center">
-              <FileText className="h-12 w-12 text-slate-300 dark:text-slate-600" />
-              <h3 className="mt-4 font-semibold text-slate-900 dark:text-slate-100">
-                {activeDoc.filename}
-              </h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                {activeDoc.page_count} pages &middot; {activeDoc.chunk_count} chunks indexed
-              </p>
-              <p className="mt-4 max-w-sm text-center text-sm text-slate-500 dark:text-slate-400">
-                Ask anything about this document. Try &quot;Summarize the key points&quot; or &quot;What are the important topics for revision?&quot;
-              </p>
-            </div>
-          ) : (
-            <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 pb-10">
-              {messages.map((msg, i) => (
-                <div
-                  key={msg.id ?? i}
-                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  {msg.role === "assistant" && (
+            ) : (
+              <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 pb-10">
+                {messages.map((msg, i) => (
+                  <div
+                    key={msg.id ?? i}
+                    className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    {msg.role === "assistant" && (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
+                        <BookOpen className="h-4 w-4" />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                          : "bg-slate-100 text-slate-800 dark:bg-neutral-800 dark:text-slate-200"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {sending && (
+                  <div className="flex gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
                       <BookOpen className="h-4 w-4" />
                     </div>
-                  )}
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "bg-slate-100 text-slate-800 dark:bg-neutral-800 dark:text-slate-200"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <div className="rounded-2xl bg-slate-100 px-4 py-3 dark:bg-neutral-800">
+                      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                    </div>
                   </div>
-                </div>
-              ))}
-              {sending && (
-                <div className="flex gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
-                    <BookOpen className="h-4 w-4" />
-                  </div>
-                  <div className="rounded-2xl bg-slate-100 px-4 py-3 dark:bg-neutral-800">
-                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span className="flex-1">{error}</span>
-            <button type="button" onClick={() => setError(null)}>
-              <X className="h-4 w-4" />
-            </button>
+                )}
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Input — always available: general chat or PDF-backed */}
-        <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
-          <div className="mx-auto flex max-w-3xl items-end gap-2">
-            <button
-              type="button"
-              onClick={() => (activeDoc ? startNewChat(activeDoc) : startGeneralChat())}
-              className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-400 dark:hover:bg-neutral-900"
-              title={activeDoc ? "New chat with this document" : "New general chat"}
-            >
-              <Plus className="h-5 w-5" />
-            </button>
-            <div className="relative flex-1">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder={
-                  activeDoc
-                    ? "Ask a question about this document..."
-                    : "Message DocChat — exam prep, study tips, or anything else..."
-                }
-                rows={1}
-                className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-neutral-600"
-                disabled={sending || (usage !== null && !usage.allowed)}
-              />
-              <button
-                type="button"
-                onClick={handleSend}
-                disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
-                className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-              >
-                <Send className="h-4 w-4" />
+          {error && (
+            <div className="mx-3 mb-0 flex shrink-0 items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300 sm:mx-4">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span className="flex-1">{error}</span>
+              <button type="button" onClick={() => setError(null)}>
+                <X className="h-4 w-4" />
               </button>
             </div>
+          )}
+
+          <div className="shrink-0 border-t border-slate-200/90 bg-white px-3 pb-3 pt-3 dark:border-neutral-800 dark:bg-neutral-950 sm:px-4 sm:pb-4">
+            <div className="mx-auto flex w-full max-w-3xl items-end gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || !activeConvo}
+                className="mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-400 dark:hover:bg-neutral-800"
+                title={
+                  activeConvo
+                    ? "Attach PDF or Word to this chat"
+                    : "Send a message first, then attach a file"
+                }
+              >
+                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
+              </button>
+              <div className="relative flex min-h-[52px] min-w-0 flex-1 flex-row items-end gap-1 rounded-[26px] border border-slate-200/90 bg-white px-3 py-2 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-none">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder={
+                    activeDoc
+                      ? "Ask about your uploaded file, or anything else…"
+                      : "Message DocChat — exam prep, study tips, or anything else…"
+                  }
+                  rows={1}
+                  className="max-h-40 min-h-[36px] min-w-0 flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  disabled={sending || (usage !== null && !usage.allowed)}
+                />
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
+                  className="mb-1 mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <p className="mt-2 text-center text-[11px] text-slate-400 dark:text-slate-500">
+              {activeDoc
+                ? "Replies can use your uploaded file. AI can make mistakes."
+                : "General chat — after your first message, use + to add a file."}
+            </p>
           </div>
-          <p className="mt-1.5 text-center text-[11px] text-slate-400 dark:text-slate-500">
-            {activeDoc
-              ? "Answers use your uploaded PDF. AI can make mistakes."
-              : "General chat — upload a PDF or Word (.docx) anytime to ask about a file."}
-          </p>
-        </div>
+        </section>
       </div>
 
-      {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/20 md:hidden"

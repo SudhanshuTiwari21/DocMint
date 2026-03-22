@@ -47,6 +47,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
+  const conversationIdRaw = formData.get("conversationId");
+  const conversationId =
+    typeof conversationIdRaw === "string" && conversationIdRaw.trim().length > 0
+      ? conversationIdRaw.trim()
+      : null;
+
   if (!isAllowedChatUploadFilename(file.name)) {
     return NextResponse.json(
       {
@@ -120,10 +126,25 @@ export async function POST(request: Request) {
     await upsertChunks(namespace, vectors);
   }
 
+  if (conversationId) {
+    const conv = await query<{ id: string }[]>(
+      `SELECT id FROM chat_conversations WHERE id = $1 AND user_id = $2`,
+      [conversationId, userId]
+    );
+    if (conv.length === 0) {
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+    await query(
+      `UPDATE chat_conversations SET document_id = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`,
+      [documentId, conversationId, userId]
+    );
+  }
+
   return NextResponse.json({
     documentId,
     filename: file.name,
     chunkCount: chunks.length,
     pageCount,
+    attachedToConversationId: conversationId,
   });
 }
