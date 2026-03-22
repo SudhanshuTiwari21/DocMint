@@ -477,11 +477,14 @@ export function ChatClient() {
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:min-h-0 md:max-h-full md:translate-x-0`}
+        } fixed left-2 top-14 z-40 flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-[min(100vw-1rem,18rem)] shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-[#f4f4f5] shadow-md transition-transform dark:border-neutral-700 dark:bg-neutral-900 md:static md:h-full md:max-h-full md:translate-x-0 min-h-0`}
       >
-        {/* min-h-0 so flex child can shrink; middle list scrolls, usage stays at bottom */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
+        {/*
+          min-h-0 on aside: flex items default to min-height:auto and won't shrink below content.
+          Grid + minmax(0,1fr): middle row takes remaining height and scrolls; usage stays visible.
+        */}
+        <div className="grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">DocChat</h2>
             <button
               type="button"
@@ -493,7 +496,7 @@ export function ChatClient() {
           </div>
 
           <div
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3"
+            className="min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-3 [scrollbar-gutter:stable]"
             style={{ WebkitOverflowScrolling: "touch" }}
             aria-label="Chat history"
           >
