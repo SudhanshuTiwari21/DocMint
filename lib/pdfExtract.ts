@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse";
 
 export type PdfExtractResult = {
   text: string;
@@ -6,19 +6,15 @@ export type PdfExtractResult = {
 };
 
 /**
- * Extract text from a PDF buffer using pdf-parse v2 (PDFParse class API).
+ * Extract text from a PDF buffer.
+ * Uses pdf-parse v1.x — compatible with Vercel serverless (no DOMMatrix / canvas).
  */
 export async function extractTextFromPdf(
   buffer: Buffer
 ): Promise<PdfExtractResult> {
-  const parser = new PDFParse({ data: buffer });
-  try {
-    const textResult = await parser.getText();
-    return {
-      text: textResult.text,
-      pageCount: textResult.total,
-    };
-  } finally {
-    await parser.destroy();
-  }
+  const data = await pdf(buffer);
+  return {
+    text: data.text,
+    pageCount: data.numpages,
+  };
 }
