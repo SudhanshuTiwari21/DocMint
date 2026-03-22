@@ -2,8 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   compress: true,
-  // pdf-parse bundles pdf.js; keep it external so paths/workers resolve on Node (Vercel)
-  serverExternalPackages: ["pdf-parse"],
+  // Next 14: top-level serverExternalPackages is Next 15+ only.
+  // Externalize pdf-parse or webpack bundles it → ENOENT on ./test/data/*.pdf at build time.
+  experimental: {
+    serverComponentsExternalPackages: ["pdf-parse"],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
