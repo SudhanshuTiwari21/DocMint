@@ -1,24 +1,41 @@
 import type { Metadata } from "next";
 import { getDefaultMetadata } from "@/lib/seo";
 import { ChatClient } from "@/components/chat/ChatClient";
+import { DocChatStructuredData } from "./DocChatStructuredData";
 
 export const metadata: Metadata = {
   ...getDefaultMetadata({
-    title: "DocChat – Ask questions about your PDFs | Dockera",
+    title: "DocChat — Chat with PDF & Word Online (Free AI) | Dockera",
     description:
-      "Upload a PDF and chat with DocChat. Get answers grounded in your document—notes, reports, forms, or any text-based PDF. Free to start.",
+      "Free AI chat for PDF and Word (.docx). Ask questions, get summaries, and study with your notes—UPSC, SSC, banking & school prep. Answers grounded in your files. Unlimited messages.",
     keywords: [
       "DocChat",
-      "PDF chatbot",
-      "AI PDF reader",
-      "PDF Q&A",
-      "document chat",
-      "ask PDF questions",
+      "chat with PDF online",
+      "AI PDF chat",
+      "ask questions about PDF",
+      "PDF chatbot India",
+      "chat with Word document online",
+      "docx chat AI",
+      "PDF Q&A tool",
+      "document chatbot",
+      "AI study assistant PDF",
+      "UPSC notes chat AI",
+      "SSC exam PDF assistant",
+      "read PDF with AI",
+      "summarize PDF online free",
+      "Dockera DocChat",
+      "RAG PDF chat",
+      "PDF question answering",
     ],
     path: "/chat",
   }),
 };
 
 export default function ChatPage() {
-  return <ChatClient />;
+  return (
+    <>
+      <DocChatStructuredData />
+      <ChatClient />
+    </>
+  );
 }

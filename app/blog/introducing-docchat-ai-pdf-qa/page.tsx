@@ -23,15 +23,17 @@ export const metadata: Metadata = {
     title:
       "Introducing DocChat — AI-Powered PDF Q&A for Exam Prep | Dockera Blog",
     description:
-      "DocChat lets you upload PDFs and ask questions using AI. Built for students preparing for UPSC, SSC, banking, and competitive exams. Free to start.",
+      "DocChat lets you upload PDFs or Word (.docx) and ask questions with AI—UPSC, SSC, banking, and competitive exams. Unlimited chat; free tier includes indexed documents.",
     keywords: [
       "DocChat",
+      "chat with PDF online",
       "AI PDF reader",
       "exam preparation tool",
       "PDF chatbot",
       "study with AI",
       "UPSC study tool",
       "SSC preparation",
+      "Word document AI chat",
     ],
     path: "/blog/introducing-docchat-ai-pdf-qa",
   }),

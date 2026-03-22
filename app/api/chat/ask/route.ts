@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { query } from "@/lib/db";
-import { getEmbedding } from "@/lib/openai";
 import { chatCompletion, type ChatMessage } from "@/lib/openai";
-import { queryChunks } from "@/lib/pinecone";
+import { buildMergedDocumentContext } from "@/lib/docChatRetrieval";
 import { checkChatUsage, recordChatUsage, checkIpRateLimit } from "@/lib/chatRateLimit";
 import { assistantReplyToPlainText } from "@/lib/assistantPlainText";
 
@@ -123,10 +122,9 @@ export async function POST(request: Request) {
     const docFilename = docs[0].filename ?? "";
     docFilenameForAttachment = docFilename.trim().length > 0 ? docFilename : null;
 
-    const embeddingQuery = userRawStored.length > 0 ? userRawStored : DOC_ONLY_EMBEDDING_QUERY;
-    const questionEmbedding = await getEmbedding(embeddingQuery);
-    const relevantChunks = await queryChunks(namespace, questionEmbedding, 10);
-    const context = relevantChunks.map((c) => c.text).join("\n\n");
+    const retrievalQuery =
+      userRawStored.length > 0 ? userRawStored : DOC_ONLY_EMBEDDING_QUERY;
+    const context = await buildMergedDocumentContext(namespace, retrievalQuery);
 
     const filenameHint =
       docFilename.trim().length > 0
@@ -135,15 +133,15 @@ export async function POST(request: Request) {
 
     systemPrompt = {
       role: "system",
-      content: `You are DocChat, Dockera's assistant. The user uploaded a PDF; below is DOCUMENT CONTEXT (machine-retrieved excerpts—not the full file).
+      content: `You are DocChat, Dockera's assistant. The user uploaded a document; below is DOCUMENT CONTEXT (machine-retrieved excerpts—not guaranteed to be the full file). Earlier messages in this thread may also summarize the same document—use them together with the excerpts when they are about this file.
 
 How to answer:
-- Base every answer on the excerpts. When the excerpts clearly imply something (topic, document kind, entities, dates) via wording, structure, or sections, state it briefly—do not require a literal sentence that labels the document if the content already shows what it is.
-- If the excerpts do not contain enough to answer, say you don't have enough in the retrieved text and suggest a more specific question if helpful.
-- For broad questions ("what is this about?"), use whatever appears in the excerpts: titles, headings, recurring terms, filename hint, and flow of content.
-- Stay neutral: any PDF is allowed (reports, books, forms, legal notices, technical docs, personal files, etc.). Do not assume a specific domain unless the text supports it.
-- Be concise and accurate.
-- Formatting: reply in plain text only. Do not use Markdown (no **, __, #, bullets with -, numbered lists with markdown, or backticks). Use normal sentences; short line breaks are fine.
+- Ground answers in the excerpts and in prior turns in this thread when they describe the same document. Do not invent employers, salaries, or numbers that never appear anywhere in excerpts or chat history.
+- For subjective or predictive questions (salary, placement, "can they get X LPA", career outlook): use skills, experience, education, and projects from the excerpts or from what was already stated in this conversation. Give a balanced, cautious view: typical factors (role, company, location, market, performance) and that no salary can be promised from a resume alone. You may discuss realistic ranges or what profiles like this often target only as general context, not as fact. Do not refuse with "not enough retrieved text" when skills and experience are available from excerpts or prior messages—only refuse if there is truly no relevant professional content.
+- For factual extraction (skills, name, dates): stick to what appears in the excerpts or prior assistant messages in this thread.
+- For broad questions ("what is this about?"), use titles, headings, recurring terms, filename hint, and flow of content.
+- Stay neutral: resumes, reports, forms, and personal files are all allowed. Do not assume a specific domain unless the text supports it.
+- Be concise. Plain text only—no Markdown (no **, __, #, markdown bullets, or backticks). Short line breaks are fine.
 
 ${filenameHint}
 DOCUMENT CONTEXT:
