@@ -71,7 +71,7 @@ const faqSchema = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="flex min-h-full flex-1 flex-col bg-white dark:bg-black">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}

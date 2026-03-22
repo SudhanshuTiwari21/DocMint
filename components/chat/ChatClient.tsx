@@ -42,6 +42,8 @@ type Msg = {
   id?: string;
   role: "user" | "assistant";
   content: string;
+  /** Filename shown in the user bubble when that turn used the thread document (ChatGPT-style). */
+  attachmentFilename?: string | null;
 };
 
 type Usage = {
@@ -77,6 +79,8 @@ export function ChatClient() {
   /** Resolves when the current upload (embeddings stored) finishes; ask() must await this first. */
   const uploadInFlightRef = useRef<Promise<void> | null>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
+  /** Document uploaded before any conversation exists — delete from DB if user leaves without sending. */
+  const orphanDocumentIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -105,11 +109,19 @@ export function ChatClient() {
       const data = await res.json();
       forceScrollToBottomRef.current = true;
       setMessages(
-        (data.messages ?? []).map((m: { id: string; role: string; content: string }) => ({
-          id: m.id,
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        }))
+        (data.messages ?? []).map(
+          (m: {
+            id: string;
+            role: string;
+            content: string;
+            attachment_filename?: string | null;
+          }) => ({
+            id: m.id,
+            role: m.role as "user" | "assistant",
+            content: m.content,
+            attachmentFilename: m.attachment_filename ?? null,
+          })
+        )
       );
     }
   }, []);
@@ -147,14 +159,23 @@ export function ChatClient() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
 
+  /** Remove orphan draft document from DB (new chat, no messages sent). */
+  const discardOrphanDocument = useCallback(async () => {
+    const id = orphanDocumentIdRef.current;
+    if (!id) return;
+    orphanDocumentIdRef.current = null;
+    try {
+      await fetch(`/api/chat/documents?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const startUpload = useCallback(
     (file: File) => {
-      if (!activeConvo) {
-        setError("Send a message first to start the chat, then you can attach a file.");
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
-
       uploadAbortRef.current?.abort();
       const ac = new AbortController();
       uploadAbortRef.current = ac;
@@ -166,7 +187,9 @@ export function ChatClient() {
       const p = (async () => {
         const form = new FormData();
         form.append("file", file);
-        form.append("conversationId", activeConvo);
+        if (activeConvo) {
+          form.append("conversationId", activeConvo);
+        }
 
         const res = await fetch("/api/chat/upload", {
           method: "POST",
@@ -185,6 +208,11 @@ export function ChatClient() {
           chunk_count: data.chunkCount,
         });
         setAttachmentChip({ name: file.name, status: "ready" });
+        if (!activeConvo) {
+          orphanDocumentIdRef.current = data.documentId as string;
+        } else {
+          orphanDocumentIdRef.current = null;
+        }
         await loadConvos();
       })();
 
@@ -196,6 +224,7 @@ export function ChatClient() {
         setError(err instanceof Error ? err.message : "Upload failed");
         setAttachmentChip(null);
         setActiveDoc(null);
+        orphanDocumentIdRef.current = null;
       }).finally(() => {
         setUploading(false);
         uploadInFlightRef.current = null;
@@ -206,6 +235,32 @@ export function ChatClient() {
     [activeConvo, loadConvos]
   );
 
+  /** Remove attachment after indexing (or cancel in-flight upload). */
+  const removeAttachment = useCallback(async () => {
+    if (attachmentChip?.status === "uploading") {
+      abortUpload();
+      return;
+    }
+    if (!activeDoc) return;
+    const id = activeDoc.id;
+    try {
+      const res = await fetch(`/api/chat/documents?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to remove file");
+      }
+      orphanDocumentIdRef.current = null;
+      setActiveDoc(null);
+      setAttachmentChip(null);
+      await loadConvos();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to remove file");
+    }
+  }, [activeDoc, attachmentChip?.status, abortUpload, loadConvos]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -213,10 +268,10 @@ export function ChatClient() {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
-    if (usage !== null && !usage.allowed) return;
-
     const userMsg = input.trim();
+    const hasDoc = !!activeDoc?.id;
+    if ((!userMsg && !hasDoc) || sending) return;
+    if (usage !== null && !usage.allowed) return;
 
     // LLM runs only after embeddings exist: wait for any in-flight upload to finish first.
     const uploadWait = uploadInFlightRef.current;
@@ -228,28 +283,54 @@ export function ChatClient() {
       }
     }
 
+    const isFirstInThread = messages.length === 0;
+    const attachmentFilenameForTurn =
+      hasDoc && (isFirstInThread || userMsg.length === 0)
+        ? activeDoc!.filename
+        : undefined;
+
     setInput("");
     setSending(true);
     setError(null);
     forceScrollToBottomRef.current = true;
 
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: userMsg,
+        attachmentFilename: attachmentFilenameForTurn ?? null,
+      },
+    ]);
 
     try {
+      const payload: {
+        conversationId: string | null;
+        message: string;
+        documentId?: string;
+      } = {
+        conversationId: activeConvo,
+        message: userMsg,
+      };
+      if (!activeConvo && activeDoc?.id) {
+        payload.documentId = activeDoc.id;
+      }
+
       const res = await fetch("/api/chat/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          conversationId: activeConvo,
-          message: userMsg,
-        }),
+        body: JSON.stringify(payload),
         credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Failed to get response");
+        setMessages((prev) => prev.slice(0, -1));
+        setInput(userMsg);
         return;
       }
+      orphanDocumentIdRef.current = null;
+      setAttachmentChip(null);
       setMessages((prev) => [...prev, { role: "assistant", content: data.message.content }]);
       if (data.conversationId && !activeConvo) {
         setActiveConvo(data.conversationId);
@@ -258,29 +339,32 @@ export function ChatClient() {
       if (data.usage) setUsage(data.usage);
     } catch {
       setError("Failed to send message. Please try again.");
+      setMessages((prev) => prev.slice(0, -1));
+      setInput(userMsg);
     } finally {
       setSending(false);
     }
   };
 
-  const openConvo = (convo: Convo) => {
+  const openConvo = async (convo: Convo) => {
+    await discardOrphanDocument();
     abortUpload();
     if (convo.document_id) {
       setActiveDoc({
         id: convo.document_id,
         filename: convo.filename,
       });
-      setAttachmentChip({ name: convo.filename, status: "ready" });
     } else {
       setActiveDoc(null);
-      setAttachmentChip(null);
     }
+    setAttachmentChip(null);
     setActiveConvo(convo.id);
     loadMessages(convo.id);
     setSidebarOpen(false);
   };
 
-  const startGeneralChat = () => {
+  const startGeneralChat = async () => {
+    await discardOrphanDocument();
     abortUpload();
     forceScrollToBottomRef.current = true;
     setActiveDoc(null);
@@ -289,6 +373,25 @@ export function ChatClient() {
     setMessages([]);
     setSidebarOpen(false);
   };
+
+  /** Tab close / leave site: drop unlinked draft upload only. */
+  useEffect(() => {
+    const flushOrphan = () => {
+      const id = orphanDocumentIdRef.current;
+      if (!id) return;
+      orphanDocumentIdRef.current = null;
+      fetch(`/api/chat/documents?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        credentials: "include",
+        keepalive: true,
+      }).catch(() => {});
+    };
+    window.addEventListener("pagehide", flushOrphan);
+    return () => {
+      window.removeEventListener("pagehide", flushOrphan);
+      flushOrphan();
+    };
+  }, []);
 
   if (authed === null) {
     return (
@@ -490,7 +593,17 @@ export function ChatClient() {
                           : "bg-slate-100 text-slate-800 dark:bg-neutral-800 dark:text-slate-200"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      {msg.role === "user" && msg.attachmentFilename && (
+                        <div className="mb-2 flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs font-medium dark:border-slate-900/20 dark:bg-slate-900/10">
+                          <FileText className="h-3.5 w-3.5 shrink-0 opacity-90" />
+                          <span className="min-w-0 truncate">{msg.attachmentFilename}</span>
+                        </div>
+                      )}
+                      {msg.content ? (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      ) : msg.role === "user" && msg.attachmentFilename ? (
+                        <p className="text-xs italic opacity-80">No message — summarizing your file</p>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -539,16 +652,16 @@ export function ChatClient() {
                       Ready
                     </span>
                   )}
-                  {attachmentChip.status === "uploading" && (
-                    <button
-                      type="button"
-                      onClick={() => abortUpload()}
-                      className="shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-neutral-800 dark:hover:text-slate-200"
-                      title="Cancel upload"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      attachmentChip.status === "uploading" ? abortUpload() : removeAttachment()
+                    }
+                    className="shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-neutral-800 dark:hover:text-slate-200"
+                    title={attachmentChip.status === "uploading" ? "Cancel upload" : "Remove attachment"}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
               )}
 
@@ -556,13 +669,9 @@ export function ChatClient() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading || !activeConvo}
+                  disabled={uploading}
                   className="mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-400 dark:hover:bg-neutral-800"
-                  title={
-                    activeConvo
-                      ? "Attach PDF or Word to this chat"
-                      : "Send a message first, then attach a file"
-                  }
+                  title="Attach PDF or Word (you can attach before or after your first message)"
                 >
                   {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
                 </button>
@@ -578,7 +687,7 @@ export function ChatClient() {
                     }}
                     placeholder={
                       activeDoc
-                        ? "Ask about your uploaded file, or anything else…"
+                        ? "Ask about your file, or send empty for a summary…"
                         : "Message DocChat — exam prep, study tips, or anything else…"
                     }
                     rows={1}
@@ -588,7 +697,13 @@ export function ChatClient() {
                   <button
                     type="button"
                     onClick={handleSend}
-                    disabled={!input.trim() || sending || (usage !== null && !usage.allowed)}
+                    disabled={
+                      (!input.trim() && !activeDoc?.id) ||
+                      sending ||
+                      (usage !== null && !usage.allowed) ||
+                      uploading ||
+                      attachmentChip?.status === "uploading"
+                    }
                     className="mb-1 mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-30 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                   >
                     <Send className="h-4 w-4" />
@@ -597,9 +712,11 @@ export function ChatClient() {
               </div>
             </div>
             <p className="mt-2 text-center text-[11px] text-slate-400 dark:text-slate-500">
-              {activeDoc
-                ? "Replies use your file when indexed. AI can make mistakes."
-                : "Attach a file with + — it appears above; send runs after indexing finishes."}
+              {attachmentChip?.status === "uploading"
+                ? "Wait until indexing finishes before sending."
+                : activeDoc
+                  ? "Replies use your file when indexed. AI can make mistakes."
+                  : "Attach a file anytime; send is enabled after indexing completes."}
             </p>
           </div>
         </section>

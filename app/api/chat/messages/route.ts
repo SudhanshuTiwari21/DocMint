@@ -26,9 +26,10 @@ export async function GET(request: Request) {
     id: string;
     role: string;
     content: string;
+    attachment_filename: string | null;
     created_at: string;
   }[]>(
-    `SELECT id, role, content, created_at::text
+    `SELECT id, role, content, attachment_filename, created_at::text
      FROM chat_messages
      WHERE conversation_id = $1
      ORDER BY created_at ASC`,

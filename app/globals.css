@@ -14,7 +14,13 @@
 
 /* Dark mode animated background – add your animation here when ready (e.g. .dark .dark-mode-bg) */
 
+/* Sticky footer: html height chain so main can grow and footer sits at bottom of viewport */
+html {
+  height: 100%;
+}
+
 body {
+  min-height: 100%;
   color: var(--foreground);
   background: var(--background);
 }

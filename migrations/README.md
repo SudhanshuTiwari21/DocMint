@@ -22,6 +22,12 @@ psql "$DATABASE_URL" -f migrations/005_docchat.sql
 
 # DocChat: allow conversations without a PDF (general chat) — required or "hi" without upload will error
 psql "$DATABASE_URL" -f migrations/006_docchat_general_chat.sql
+
+# DocChat: deleting a document clears it from conversations (ON DELETE SET NULL) instead of deleting the whole chat
+psql "$DATABASE_URL" -f migrations/007_docchat_document_fk_set_null.sql
+
+# DocChat: optional attachment filename on user messages (in-thread file chip)
+psql "$DATABASE_URL" -f migrations/008_chat_messages_attachment_filename.sql
 ```
 
 **Using Neon dashboard:**  

@@ -50,15 +50,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-IN" suppressHydrationWarning>
+    <html lang="en-IN" className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-screen flex flex-col antialiased bg-background text-foreground">
+      <body className="flex min-h-full flex-col antialiased bg-background text-foreground">
         <ThemeProvider>
-          <Header />
-          <main className="flex min-h-0 flex-1 flex-col basis-0">{children}</main>
-          <ConditionalFooter />
+          {/* Single flex column so main grows and footer stays at bottom of viewport on short pages */}
+          <div className="flex min-h-full flex-1 flex-col">
+            <Header />
+            <main className="flex w-full flex-1 flex-col min-h-0">{children}</main>
+            <ConditionalFooter />
+          </div>
           <DocChatFab />
         </ThemeProvider>
       </body>

@@ -46,6 +46,12 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
 
+  await query(
+    `UPDATE chat_conversations SET document_id = NULL, updated_at = NOW()
+     WHERE document_id = $1 AND user_id = $2`,
+    [documentId, session.sub]
+  );
+
   try {
     await deleteNamespace(docs[0].namespace);
   } catch (err) {
