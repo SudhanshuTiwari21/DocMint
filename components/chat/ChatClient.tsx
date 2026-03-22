@@ -534,9 +534,6 @@ export function ChatClient() {
                     Unlimited
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
-                  Free for everyone — no daily cap
-                </p>
                 {usage.messagesUsed > 0 && (
                   <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
                     {usage.messagesUsed.toLocaleString()} sent today
@@ -562,7 +559,7 @@ export function ChatClient() {
                 </div>
                 {usage.isPremium || usage.documentsLimit === null ? (
                   <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
-                    Pro — no cap on PDF &amp; Word uploads
+                    Pro — Unlimited file uploads
                   </p>
                 ) : (
                   <>
